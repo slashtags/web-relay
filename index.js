@@ -3,13 +3,14 @@ const os = require('os')
 const fs = require('fs')
 const path = require('path')
 const blake3 = require('blake3')
+const b4a = require('b4a')
 
-const { fromHeaders } = require('./lib/shared.js')
+const { HEADERS, verify } = require('./lib/shared.js')
 
 const DEFAULT_PORT = 3000
 const DEFAULT_STORAGE_DIR = os.homedir() + '/.slashtags-web-relay'
 
-const METADATA_DIR = 'metadata'
+const RECORDS_DIR = 'records'
 const CONTENT_DIR = 'content'
 
 class Relay {
@@ -22,12 +23,12 @@ class Relay {
     this._listening = false
 
     this._storageDir = storage || DEFAULT_STORAGE_DIR
-    this._metadataDir = path.join(this._storageDir, METADATA_DIR)
+    this._recordsDir = path.join(this._storageDir, RECORDS_DIR)
     this._contentDir = path.join(this._storageDir, CONTENT_DIR)
 
     // Create storage directory if it does not exist
     createDirectoryIfDoesNotExist(this._storageDir)
-    createDirectoryIfDoesNotExist(this._metadataDir)
+    createDirectoryIfDoesNotExist(this._recordsDir)
     createDirectoryIfDoesNotExist(this._contentDir)
   }
 
@@ -77,8 +78,7 @@ class Relay {
     // Set CORS headers on all responses
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS')
-    // TODO: Access-Control-Allow-Headers
-    res.setHeader('Access-Control-Allow-Headers', '')
+    // TODO: Access-Control-Allow-Headers -- test in browser first
 
     switch (req.method) {
       case 'OPTIONS':
@@ -113,50 +113,81 @@ class Relay {
    */
   async _PUT (req, res) {
     const userID = req.url.split('/')[1]
+    const self = this
 
-    // TODO: validate signature
-    const { metadata, contentID } = fromHeaders(req.headers)
+    const hexContentHash = req.headers[HEADERS.CONTENT_HASH].toString()
+    const base64Metadata = req.headers[HEADERS.METADATA]
+    const base64Signature = req.headers[HEADERS.SIGNATURE]
 
-    const contentPath = path.join(this._contentDir, contentID)
+    const metadata = b4a.from(base64Metadata, 'base64url')
+    const contentHash = b4a.from(hexContentHash, 'hex')
+    const signature = b4a.from(base64Signature, 'base64')
+
+    const valid = verify({ contentHash, metadata, signature, userID })
+
+    if (!valid) {
+      // TODO: better error handling
+      throw new Error('Invalid signature')
+    }
+
+    const contentPath = path.join(this._contentDir, hexContentHash)
+
+    const exists = fs.existsSync(contentPath)
+    if (exists) {
+      return success()
+    }
+
+    // Initialize the hasher before the stream starts
+    await blake3.load()
+    const hasher = blake3.createHash()
 
     // Loading the entire file in memory is not safe
     const writeStream = fs.createWriteStream(contentPath)
 
     req.pipe(writeStream)
 
-    await blake3.load()
-    const hasher = blake3.createHash()
-
     req.on('data', (chunk) => {
       hasher.update(chunk)
     })
 
     writeStream.on('finish', () => {
-      try {
-        const hash = hasher.digest().toString('hex')
+      const hash = hasher.digest().toString('hex')
 
-        if (hash !== contentID) {
-          // TODO: better error handling
-          throw new Error('Hash mismatch')
-        }
-
-        // Save metadata
-        createDirectoryIfDoesNotExist(path.join(this._metadataDir, userID))
-
-        const metadataPath = path.join(this._metadataDir, req.url)
-        fs.writeFileSync(metadataPath, metadata)
-      } catch (error) {
-        // TODO: Handle hash mismatch error
+      if (hash !== hexContentHash) {
+        // Remove that invalid file. Since we would have responded with success if it existed before,
+        // we can be sure that we are not deleting a file created by another request.
+        // alternatively, we could skip this step, and do ocasional garbage collection
+        // by deleting files that are not refrenced by any valid record.
+        fs.unlinkSync(contentPath)
+        // TODO: better error handling
+        throw new Error('Hash mismatch')
       }
 
-      res.writeHead(201, 'File saved successfully')
-      res.end()
+      success()
     })
 
     writeStream.on('error', _ => {
       res.writeHead(500, 'Failed to write file')
       res.end()
     })
+
+    function success () {
+      // Save metadata
+      createDirectoryIfDoesNotExist(path.join(self._recordsDir, userID))
+
+      const metadataPath = path.join(self._recordsDir, req.url)
+
+      const metadata = JSON.stringify({
+        hexContentHash,
+        base64Signature,
+        base64Metadata
+      })
+
+      fs.writeFileSync(metadataPath, metadata)
+
+      res.writeHead(201, 'File saved successfully')
+      res.end()
+    }
   }
 
   /**
@@ -164,10 +195,58 @@ class Relay {
    * @param {http.ServerResponse} res
    */
   _GET (req, res) {
-    res.end()
+    const recordPath = path.join(this._recordsDir, req.url)
+    const record = readRecordIfExists(recordPath)
+
+    if (!record) {
+      res.writeHead(404, 'File not found')
+    }
+
+    const {
+      hexContentHash,
+      base64Signature,
+      base64Metadata
+    } = JSON.parse(record)
+
+    res.setHeader(HEADERS.CONTENT_HASH, hexContentHash)
+    res.setHeader(HEADERS.SIGNATURE, base64Signature)
+    res.setHeader(HEADERS.METADATA, base64Metadata)
+
+    const contentPath = path.join(this._contentDir, hexContentHash)
+    const stream = fs.createReadStream(contentPath)
+
+    stream.on('data', (chunk) => {
+      res.write(chunk)
+    })
+
+    stream.on('end', () => {
+      res.end()
+    })
+
+    stream.on('error', () => {
+      res.writeHead(500, 'Failed to read file')
+      res.end()
+    })
   }
 }
 
+/**
+ * @param {string} path
+ *
+ * return {string | null}
+ */
+function readRecordIfExists (path) {
+  try {
+    return fs.readFileSync(path, { encoding: 'utf8' })
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+    return null
+  }
+}
+
+/**
+ * @param {string} path
+ */
 function createDirectoryIfDoesNotExist (path) {
   try {
     fs.mkdirSync(path)

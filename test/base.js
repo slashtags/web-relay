@@ -49,8 +49,15 @@ test('basic - put & get', async (t) => {
     // GET
     const client = new Client()
     const response = await client.get(address, userID, '/test.txt')
-    console.log(response)
-    // TODO: test response
+
+    let recieved = Buffer.alloc(0)
+
+    response.body.on('data', (chunk) => {
+      recieved = Buffer.concat([recieved, chunk])
+    })
+
+    t.ok(await response.valid)
+    t.alike(recieved, content)
   }
 
   relay.close()
