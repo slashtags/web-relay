@@ -2,7 +2,7 @@ const http = require('http')
 const os = require('os')
 const fs = require('fs')
 const path = require('path')
-const blake3 = require('blake3')
+const { createBLAKE3 } = require('hash-wasm')
 const b4a = require('b4a')
 
 const { HEADERS, verify } = require('./lib/shared.js')
@@ -149,8 +149,7 @@ class Relay {
     }
 
     // Initialize the hasher before the stream starts
-    await blake3.load()
-    const hasher = blake3.createHash()
+    const hasher = await createBLAKE3()
 
     // Loading the entire file in memory is not safe
     const writeStream = fs.createWriteStream(contentPath)
@@ -162,7 +161,7 @@ class Relay {
     })
 
     writeStream.on('finish', () => {
-      const hash = hasher.digest().toString('hex')
+      const hash = hasher.digest('hex')
 
       if (hash !== hexContentHash) {
         // Remove that invalid file. Since we would have responded with success if it existed before,
