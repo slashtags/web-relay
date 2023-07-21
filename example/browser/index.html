@@ -1,0 +1,24 @@
+<html>
+<head>
+<style>
+  button[disabled] {
+    background-color: #ccc;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+  <form id='put'>
+    <p>Input a key and value to save to the database.</p>
+    <input type="text" id="key" />
+    <input type="text" id="value" />
+    <button id="button">Save</button>
+  </form>
+  <form id='get'>
+    <p>Lookup a value by its key.</p>
+    <input type="text" id="key" />
+    <button id="button">Get</button>
+  </form>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "relay": "node relay.js",
+    "start": "parcel index.html"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "buffer": "^6.0.3",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "@babel/preset-env": "^7.22.9",
+    "parcel": "^2.9.3",
+    "web-relay": "github:slashtags/web-relay#dev"
+  },
+  "overrides": {
+    "blake3-wasm": "^3.0.0",
+    "@c4312/blake3-internal": "^3.0.0"
+  }
+}

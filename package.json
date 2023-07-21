@@ -5,7 +5,7 @@
   "types": "types/index.d.ts",
   "scripts": {
     "test": "brittle test/* -cov",
-    "lint": "standard --fix",
+    "lint": "standard --fix --ignore example/*",
     "build": "tsc",
     "fullcheck": "npm run lint && npm run build && npm run test",
     "prepublishOnly": "npm run fullcheck"
