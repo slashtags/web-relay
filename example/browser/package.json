@@ -13,9 +13,5 @@
     "@babel/preset-env": "^7.22.9",
     "parcel": "^2.9.3",
     "web-relay": "github:slashtags/web-relay#dev"
-  },
-  "overrides": {
-    "blake3-wasm": "^3.0.0",
-    "@c4312/blake3-internal": "^3.0.0"
   }
 }
