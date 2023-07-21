@@ -1,0 +1,38 @@
+{
+  "name": "web-relay",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "brittle test/* -cov",
+    "lint": "standard --fix",
+    "build": "tsc",
+    "fullcheck": "npm run lint && npm run build && npm run test",
+    "prepublishOnly": "npm run fullcheck"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "lib",
+    "types",
+    "!**/*.tsbuildinfo"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.16.0",
+    "@types/node-fetch": "^2.6.4",
+    "brittle": "^3.2.1",
+    "standard": "^17.0.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "b4a": "^1.6.4",
+    "blake3": "^3.0.0",
+    "node-fetch": "^2.6.12",
+    "sodium-universal": "^4.0.0",
+    "z32": "^1.0.0"
+  },
+  "overrides": {
+    "blake3-wasm": "^3.0.0",
+    "@c4312/blake3-internal": "^3.0.0"
+  }
+}
