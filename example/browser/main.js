@@ -1,4 +1,4 @@
-const Client = require('web-relay/lib/client.js')
+const Client = require('@synonymdev/web-relay/lib/client.js')
 
 const client = new Client()
 
