@@ -52,12 +52,13 @@ test('basic - put & get', async (t) => {
 
     let recieved = Buffer.alloc(0)
 
-    response.body.on('data', (chunk) => {
+    for await (const chunk of response) {
       recieved = Buffer.concat([recieved, chunk])
-    })
+    }
 
-    t.ok(await response.valid)
     t.alike(recieved, content)
+    t.ok(response.valid)
+    t.is(response.metadata.timestamp, 1234567890)
   }
 
   relay.close()

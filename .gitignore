@@ -2,3 +2,8 @@ coverage
 node_modules
 types
 package-lock.json
+
+example/browser/storage/*
+example/browser/output.js
+example/browser/.parcel-cache
+example/browser/dist

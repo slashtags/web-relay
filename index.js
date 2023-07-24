@@ -2,16 +2,18 @@ const http = require('http')
 const os = require('os')
 const fs = require('fs')
 const path = require('path')
-const blake3 = require('blake3')
+const { createBLAKE3 } = require('hash-wasm')
 const b4a = require('b4a')
 
 const { HEADERS, verify } = require('./lib/shared.js')
 
-const DEFAULT_PORT = 3000
+const DEFAULT_PORT = 0
 const DEFAULT_STORAGE_DIR = os.homedir() + '/.slashtags-web-relay'
 
 const RECORDS_DIR = 'records'
 const CONTENT_DIR = 'content'
+
+const HEADERS_LIST = Object.values(HEADERS).join(', ')
 
 class Relay {
   /**
@@ -35,7 +37,10 @@ class Relay {
   [Symbol.for('nodejs.util.inspect.custom')] () {
     return this.constructor.name + ' ' + JSON.stringify({
       listening: this._listening,
-      address: this._server.address()
+      address: this._server.address(),
+      storageDir: this._storageDir,
+      recordsDir: this._recordsDir,
+      contentDir: this._contentDir
     }, null, 4)
   }
 
@@ -74,11 +79,17 @@ class Relay {
    */
   _handle (req, res) {
     // TODO: validate request path
+    // if (req.url === '/') {
+    //   res.writeHead(200, 'Ok')
+    //   res.end()
+    //   return
+    // }
 
     // Set CORS headers on all responses
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS')
-    // TODO: Access-Control-Allow-Headers -- test in browser first
+    res.setHeader('Access-Control-Allow-Headers', HEADERS_LIST)
+    res.setHeader('Access-Control-Expose-Headers', HEADERS_LIST)
 
     switch (req.method) {
       case 'OPTIONS':
@@ -138,8 +149,7 @@ class Relay {
     }
 
     // Initialize the hasher before the stream starts
-    await blake3.load()
-    const hasher = blake3.createHash()
+    const hasher = await createBLAKE3()
 
     // Loading the entire file in memory is not safe
     const writeStream = fs.createWriteStream(contentPath)
@@ -151,7 +161,7 @@ class Relay {
     })
 
     writeStream.on('finish', () => {
-      const hash = hasher.digest().toString('hex')
+      const hash = hasher.digest('hex')
 
       if (hash !== hexContentHash) {
         // Remove that invalid file. Since we would have responded with success if it existed before,
@@ -200,6 +210,8 @@ class Relay {
 
     if (!record) {
       res.writeHead(404, 'File not found')
+      res.end()
+      return
     }
 
     const {
@@ -231,10 +243,10 @@ class Relay {
 }
 
 /**
- * @param {string} path
- *
- * return {string | null}
- */
+   * @param {string} path
+   *
+   * return {string | null}
+   */
 function readRecordIfExists (path) {
   try {
     return fs.readFileSync(path, { encoding: 'utf8' })
