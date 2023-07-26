@@ -5,7 +5,7 @@ const path = require('path')
 const { createBLAKE3 } = require('hash-wasm')
 const b4a = require('b4a')
 
-const { HEADERS, verify } = require('./lib/shared.js')
+const { HEADERS, HEADERS_NAMES, verify } = require('./lib/shared.js')
 
 const DEFAULT_PORT = 0
 const DEFAULT_STORAGE_DIR = os.homedir() + '/.slashtags-web-relay'
@@ -13,16 +13,12 @@ const DEFAULT_STORAGE_DIR = os.homedir() + '/.slashtags-web-relay'
 const RECORDS_DIR = 'records'
 const CONTENT_DIR = 'content'
 
-const HEADERS_LIST = Object.values(HEADERS).join(', ')
-
 class Relay {
   /**
    * @param {string} [storage] - storage directory
    */
   constructor (storage) {
     this._server = http.createServer(this._handle.bind(this))
-
-    this._listening = false
 
     this._storageDir = storage || DEFAULT_STORAGE_DIR
     this._recordsDir = path.join(this._storageDir, RECORDS_DIR)
@@ -36,7 +32,7 @@ class Relay {
 
   [Symbol.for('nodejs.util.inspect.custom')] () {
     return this.constructor.name + ' ' + JSON.stringify({
-      listening: this._listening,
+      listening: this._server.listening,
       address: this._server.address(),
       storageDir: this._storageDir,
       recordsDir: this._recordsDir,
@@ -60,8 +56,7 @@ class Relay {
   listen (port) {
     return new Promise(resolve => {
       this._server.listen(port || DEFAULT_PORT, () => {
-        this._listening = true
-        resolve()
+        resolve('http://localhost:' + this.port)
       })
     })
   }
@@ -88,8 +83,8 @@ class Relay {
     // Set CORS headers on all responses
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', HEADERS_LIST)
-    res.setHeader('Access-Control-Expose-Headers', HEADERS_LIST)
+    res.setHeader('Access-Control-Allow-Headers', HEADERS_NAMES)
+    res.setHeader('Access-Control-Expose-Headers', HEADERS_NAMES)
 
     switch (req.method) {
       case 'OPTIONS':
@@ -108,11 +103,11 @@ class Relay {
   }
 
   /**
-   * Respond to preflight requests
-   *
-   * @param {http.IncomingMessage} _req
-   * @param {http.ServerResponse} res
-   */
+ * Respond to preflight requests
+ *
+ * @param {http.IncomingMessage} _req
+ * @param {http.ServerResponse} res
+ */
   _OPTIONS (_req, res) {
     res.writeHead(204)
     res.end()
@@ -195,15 +190,15 @@ class Relay {
 
       fs.writeFileSync(metadataPath, metadata)
 
-      res.writeHead(201, 'File saved successfully')
+      res.writeHead(200, 'OK')
       res.end()
     }
   }
 
   /**
-   * @param {http.IncomingMessage} req
-   * @param {http.ServerResponse} res
-   */
+ * @param {http.IncomingMessage} req
+ * @param {http.ServerResponse} res
+ */
   _GET (req, res) {
     const recordPath = path.join(this._recordsDir, req.url)
     const record = readRecordIfExists(recordPath)
@@ -243,10 +238,10 @@ class Relay {
 }
 
 /**
-   * @param {string} path
-   *
-   * return {string | null}
-   */
+     * @param {string} path
+     *
+     * return {string | null}
+     */
 function readRecordIfExists (path) {
   try {
     return fs.readFileSync(path, { encoding: 'utf8' })

@@ -6,7 +6,6 @@ declare class Relay {
      */
     constructor(storage?: string);
     _server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
-    _listening: boolean;
     _storageDir: string;
     _recordsDir: string;
     _contentDir: string;
@@ -30,11 +29,11 @@ declare class Relay {
      */
     _handle(req: http.IncomingMessage, res: http.ServerResponse): void;
     /**
-     * Respond to preflight requests
-     *
-     * @param {http.IncomingMessage} _req
-     * @param {http.ServerResponse} res
-     */
+   * Respond to preflight requests
+   *
+   * @param {http.IncomingMessage} _req
+   * @param {http.ServerResponse} res
+   */
     _OPTIONS(_req: http.IncomingMessage, res: http.ServerResponse): void;
     /**
      * @param {http.IncomingMessage} req
@@ -42,9 +41,9 @@ declare class Relay {
      */
     _PUT(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
     /**
-     * @param {http.IncomingMessage} req
-     * @param {http.ServerResponse} res
-     */
+   * @param {http.IncomingMessage} req
+   * @param {http.ServerResponse} res
+   */
     _GET(req: http.IncomingMessage, res: http.ServerResponse): void;
 }
 import http = require("http");

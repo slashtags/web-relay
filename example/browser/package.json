@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@babel/preset-env": "^7.22.9",
-    "@synonymdev/web-relay": "^0.1.0",
+    "@synonymdev/web-relay": "file:../..",
     "parcel": "^2.9.3"
   }
 }

@@ -6,10 +6,12 @@ export type JSONObject = {
     [key: string]: JSONValue | JSONValue[];
 };
 export namespace HEADERS {
+    let CONTENT_TYPE: string;
     let METADATA: string;
     let CONTENT_HASH: string;
     let SIGNATURE: string;
 }
+export const HEADERS_NAMES: string;
 /**
  * Sign the contactination of contentHash and encoded metadata with the client's secretKey
  *
