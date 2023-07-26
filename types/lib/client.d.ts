@@ -10,6 +10,10 @@ declare class WebRelayClient {
         secretKey: any;
     };
     /**
+     * @param {Uint8Array} content
+     */
+    static hash(content: Uint8Array): Promise<Uint8Array>;
+    /**
      * @param {KeyPair} [keyPair]
      */
     constructor(keyPair?: KeyPair);
@@ -30,11 +34,13 @@ declare class WebRelayClient {
      * @param {Uint8Array} content - content of the file
      * @param {object} [opts]
      * @param {Metadata} [opts.metadata]
+     * @param {Uint8Array} [opts.contentHash]
      *
      * @returns {Promise<import('node-fetch').Response>}
      */
     put(relayAddress: string, path: string, content: Uint8Array, opts?: {
         metadata?: Metadata;
+        contentHash?: Uint8Array;
     }): Promise<import('node-fetch').Response>;
     /**
      * Send a get request to the provided Relay
