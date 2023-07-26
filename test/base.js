@@ -74,6 +74,7 @@ test('basic - put & get', async (t) => {
     t.alike(recieved, content)
     t.ok(response.valid)
     t.is(response.metadata.timestamp, 1234567890)
+    t.is(response.hash, '59b11ff3669fca113f32fe2d4715ccc7302a140dda0d2826d6b68a9c63495fbb')
   }
 
   relay.close()

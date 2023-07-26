@@ -65,6 +65,7 @@ declare class GetResponse {
     _isNodeFetch: boolean;
     _reader: any;
     valid: boolean;
+    hash: string;
     [Symbol.asyncIterator](): AsyncGenerator<Uint8Array, void, unknown>;
 }
 type KeyPair = {
