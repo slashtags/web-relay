@@ -7,7 +7,6 @@ const EventSource = require('eventsource')
 const fetch = require('node-fetch')
 
 const Relay = require('../index.js')
-const Client = require('../lib/client.js')
 const { HEADERS_NAMES, HEADERS } = require('../lib/shared.js')
 
 test('method not allowed', async (t) => {
@@ -127,9 +126,9 @@ test('invalid userID', async (t) => {
 
   const response = await fetch(
     address + '/foo/test.txt', {
-      method: 'PUT',
-      body: 'ffff'
-    })
+    method: 'PUT',
+    body: 'ffff'
+  })
 
   t.is(response.status, 400)
   t.is(response.statusText, 'Invalid userID')
@@ -147,21 +146,21 @@ test('missing headers', async (t) => {
 
   const response = await fetch(
     address + '/' + client.id, {
-      method: 'PUT',
-      body: 'ffff'
-    })
+    method: 'PUT',
+    body: 'ffff'
+  })
 
   t.is(response.status, 400)
   t.is(response.statusText, `Missing or malformed header: '${HEADERS.CONTENT_HASH}'`)
 
   const response2 = await fetch(
     address + '/' + client.id, {
-      method: 'PUT',
-      body: 'ffff',
-      headers: {
-        'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
-      }
-    })
+    method: 'PUT',
+    body: 'ffff',
+    headers: {
+      'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
+    }
+  })
 
   t.is(response2.status, 400)
   t.is(response2.statusText, `Missing or malformed header: '${HEADERS.SIGNATURE}'`)
@@ -201,6 +200,6 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
-function tmpdir () {
+function tmpdir() {
   return os.tmpdir() + Math.random().toString(16).slice(2)
 }

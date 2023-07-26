@@ -17,19 +17,23 @@
     "types",
     "!**/*.tsbuildinfo"
   ],
+  "browser": {
+    "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js"
+  },
   "devDependencies": {
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.4",
     "brittle": "^3.2.1",
-    "eventsource": "^2.0.2",
     "standard": "^17.0.0",
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@synonymdev/slashtags-url": "^1.0.0-alpha.3",
     "b4a": "^1.6.4",
+    "eventsource": "^2.0.2",
     "hash-wasm": "^4.9.0",
+    "level": "^8.0.0",
     "node-fetch": "^2.6.12",
-    "sodium-universal": "^4.0.0",
-    "z32": "^1.0.0"
+    "sodium-universal": "^4.0.0"
   }
 }
