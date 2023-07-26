@@ -9,8 +9,8 @@ declare class Relay {
     _storageDir: string;
     _recordsDir: string;
     _contentDir: string;
-    /** @type {Map<string, Set<(operation?: 'put' | 'del') => void>>} */
-    _subscriptions: Map<string, Set<(operation?: 'put' | 'del') => void>>;
+    /** @type {Map<string, Set<(operation: 'put' | 'del', hash?: string) => void>>} */
+    _subscriptions: Map<string, Set<(operation: 'put' | 'del', hash?: string) => void>>;
     /**
      * The port the relay is listening on
      */

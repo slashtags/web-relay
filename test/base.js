@@ -190,7 +190,7 @@ test('subscribe', async (t) => {
   te.plan(1)
 
   eventsource.on('message', ({ data }) => {
-    te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/foo.txt put')
+    te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/foo.txt put 04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9')
   })
 
   client.put(address, '/foo.txt', b4a.from('foo'))

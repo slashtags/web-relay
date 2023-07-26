@@ -29,7 +29,7 @@ class Relay {
     createDirectoryIfDoesNotExist(this._recordsDir)
     createDirectoryIfDoesNotExist(this._contentDir)
 
-    /** @type {Map<string, Set<(operation?: 'put' | 'del') => void>>} */
+    /** @type {Map<string, Set<(operation: 'put' | 'del', hash?: string) => void>>} */
     this._subscriptions = new Map()
   }
 
@@ -198,7 +198,7 @@ class Relay {
 
       if (self._subscriptions.has(req.url)) {
         for (const notify of self._subscriptions.get(req.url)) {
-          notify('put')
+          notify('put', hexContentHash)
         }
       }
 
@@ -269,8 +269,8 @@ class Relay {
       Connection: 'keep-alive'
     })
 
-    const notify = (operation = 'put') => {
-      const data = `data: ${target} ${operation}\n\n`
+    const notify = (operation = 'put', hash = '') => {
+      const data = `data: ${target} ${operation} ${hash}\n\n`
       res.write(data)
     }
 
