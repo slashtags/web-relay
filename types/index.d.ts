@@ -9,6 +9,8 @@ declare class Relay {
     _storageDir: string;
     _recordsDir: string;
     _contentDir: string;
+    /** @type {Map<string, Set<(operation?: 'put' | 'del') => void>>} */
+    _subscriptions: Map<string, Set<(operation?: 'put' | 'del') => void>>;
     /**
      * The port the relay is listening on
      */
@@ -41,10 +43,15 @@ declare class Relay {
      */
     _PUT(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
     /**
-   * @param {http.IncomingMessage} req
-   * @param {http.ServerResponse} res
-   */
+     * @param {http.IncomingMessage} req
+     * @param {http.ServerResponse} res
+     */
     _GET(req: http.IncomingMessage, res: http.ServerResponse): void;
+    /**
+     * @param {http.IncomingMessage} req
+     * @param {http.ServerResponse} res
+     */
+    _SUBSCRIBE(req: http.IncomingMessage, res: http.ServerResponse): void;
 }
 import http = require("http");
 //# sourceMappingURL=index.d.ts.map

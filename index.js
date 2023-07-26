@@ -28,6 +28,9 @@ class Relay {
     createDirectoryIfDoesNotExist(this._storageDir)
     createDirectoryIfDoesNotExist(this._recordsDir)
     createDirectoryIfDoesNotExist(this._contentDir)
+
+    /** @type {Map<string, Set<(operation?: 'put' | 'del') => void>>} */
+    this._subscriptions = new Map()
   }
 
   [Symbol.for('nodejs.util.inspect.custom')] () {
@@ -44,7 +47,7 @@ class Relay {
    * The port the relay is listening on
    */
   get port () {
-  // @ts-ignore
+    // @ts-ignore
     return this._server.address()?.port
   }
 
@@ -73,7 +76,7 @@ class Relay {
    * @param {http.ServerResponse} res
    */
   _handle (req, res) {
-  // Validate userID
+    // Validate userID
     if (!validateUserID(req.url)) {
       res.writeHead(400, 'Invalid userID')
       res.end()
@@ -91,6 +94,10 @@ class Relay {
         this._OPTIONS(req, res)
         break
       case 'GET':
+        if (req.url.startsWith('/subscribe/')) {
+          this._SUBSCRIBE(req, res)
+          return
+        }
         this._GET(req, res)
         break
       case 'PUT':
@@ -137,8 +144,8 @@ class Relay {
 
     const contentPath = path.join(this._contentDir, hexContentHash)
 
-    const exists = fs.existsSync(contentPath)
-    if (exists) {
+    const contentExists = fs.existsSync(contentPath)
+    if (contentExists) {
       return success()
     }
 
@@ -158,10 +165,10 @@ class Relay {
       const hash = hasher.digest('hex')
 
       if (hash !== hexContentHash) {
-      // Remove that invalid file. Since we would have responded with success if it existed before,
-      // we can be sure that we are not deleting a file created by another request.
-      // alternatively, we could skip this step, and do ocasional garbage collection
-      // by deleting files that are not refrenced by any valid record.
+        // Remove that invalid file. Since we would have responded with success if it existed before,
+        // we can be sure that we are not deleting a file created by another request.
+        // alternatively, we could skip this step, and do ocasional garbage collection
+        // by deleting files that are not refrenced by any valid record.
         fs.unlinkSync(contentPath)
         // TODO: better error handling
         throw new Error('Hash mismatch')
@@ -176,7 +183,7 @@ class Relay {
     })
 
     function success () {
-    // Save metadata
+      // Save metadata
       createDirectoryIfDoesNotExist(path.join(self._recordsDir, userID))
 
       const metadataPath = path.join(self._recordsDir, req.url)
@@ -188,6 +195,12 @@ class Relay {
       })
 
       fs.writeFileSync(metadataPath, metadata)
+
+      if (self._subscriptions.has(req.url)) {
+        for (const notify of self._subscriptions.get(req.url)) {
+          notify('put')
+        }
+      }
 
       res.writeHead(200, 'OK')
       res.end()
@@ -203,9 +216,9 @@ class Relay {
   }
 
   /**
- * @param {http.IncomingMessage} req
- * @param {http.ServerResponse} res
- */
+   * @param {http.IncomingMessage} req
+   * @param {http.ServerResponse} res
+   */
   _GET (req, res) {
     const recordPath = path.join(this._recordsDir, req.url)
     const record = readRecordIfExists(recordPath)
@@ -242,6 +255,43 @@ class Relay {
       res.end()
     })
   }
+
+  /**
+   * @param {http.IncomingMessage} req
+   * @param {http.ServerResponse} res
+   */
+  _SUBSCRIBE (req, res) {
+    const target = req.url.replace('/subscribe', '')
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive'
+    })
+
+    const notify = (operation = 'put') => {
+      const data = `data: ${target} ${operation}\n\n`
+      res.write(data)
+    }
+
+    let subscriptions = this._subscriptions.get(target)
+    if (!subscriptions) {
+      subscriptions = new Set([notify])
+      this._subscriptions.set(target, subscriptions)
+    }
+
+    // Close the connection and remove subscription when the client disconnects
+    req.on('close', () => {
+      const subscriptions = this._subscriptions.get(target)
+      subscriptions.delete(notify)
+
+      if (subscriptions.size === 0) {
+        this._subscriptions.delete(target)
+      }
+
+      res.end()
+    })
+  }
 }
 
 /**
@@ -264,7 +314,7 @@ function readRecordIfExists (path) {
 function createDirectoryIfDoesNotExist (path) {
   try {
     fs.mkdirSync(path)
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -272,7 +322,9 @@ function createDirectoryIfDoesNotExist (path) {
  */
 function validateUserID (url) {
   try {
-    const userID = url.split('/')[1]
+    const parts = url.split('/')
+    const userID = url.startsWith('/subscribe/') ? parts[2] : parts[1]
+
     const publicKey = z32.decode(userID)
     if (publicKey.length === 32) return true
   } catch { }

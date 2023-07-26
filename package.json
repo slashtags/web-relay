@@ -21,6 +21,7 @@
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.4",
     "brittle": "^3.2.1",
+    "eventsource": "^2.0.2",
     "standard": "^17.0.0",
     "typescript": "^5.0.4"
   },

@@ -1,6 +1,7 @@
 const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
+const EventSource = require('eventsource')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
 const fetch = require('node-fetch')
@@ -168,7 +169,37 @@ test('missing headers', async (t) => {
   relay.close()
 })
 
-test.skip('put - invalid', async (t) => { })
+test.skip('put - invalid signature', async (t) => {
+})
+
+test.skip('put - hash mismatch', async (t) => {
+})
+
+test('subscribe', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const keyPair = Client.createKeyPair(b4a.alloc(32).fill(0))
+  const client = new Client(keyPair)
+
+  const url = address + '/subscribe/' + client.id + '/foo.txt'
+
+  const eventsource = new EventSource(url)
+
+  const te = t.test('eventsource')
+  te.plan(1)
+
+  eventsource.on('message', ({ data }) => {
+    te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/foo.txt put')
+  })
+
+  client.put(address, '/foo.txt', b4a.from('foo'))
+
+  await te
+
+  eventsource.close()
+  relay.close()
+})
 
 function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)
