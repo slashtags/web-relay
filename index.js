@@ -3,9 +3,9 @@ const os = require('os')
 const fs = require('fs')
 const path = require('path')
 const { createBLAKE3 } = require('hash-wasm')
-const b4a = require('b4a')
+const z32 = require('z32')
 
-const { HEADERS, HEADERS_NAMES, verify } = require('./lib/shared.js')
+const { HEADERS, HEADERS_NAMES, verify, decodeHeaders } = require('./lib/shared.js')
 
 const DEFAULT_PORT = 0
 const DEFAULT_STORAGE_DIR = os.homedir() + '/.slashtags-web-relay'
@@ -44,7 +44,7 @@ class Relay {
    * The port the relay is listening on
    */
   get port () {
-    // @ts-ignore
+  // @ts-ignore
     return this._server.address()?.port
   }
 
@@ -73,12 +73,12 @@ class Relay {
    * @param {http.ServerResponse} res
    */
   _handle (req, res) {
-    // TODO: validate request path
-    // if (req.url === '/') {
-    //   res.writeHead(200, 'Ok')
-    //   res.end()
-    //   return
-    // }
+  // Validate userID
+    if (!validateUserID(req.url)) {
+      res.writeHead(400, 'Invalid userID')
+      res.end()
+      return
+    }
 
     // Set CORS headers on all responses
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -121,19 +121,18 @@ class Relay {
     const userID = req.url.split('/')[1]
     const self = this
 
-    const hexContentHash = req.headers[HEADERS.CONTENT_HASH].toString()
-    const base64Metadata = req.headers[HEADERS.METADATA]
-    const base64Signature = req.headers[HEADERS.SIGNATURE]
+    const { metadata, signature, contentHash, hexContentHash, base64Metadata, base64Signature } = decodeHeaders(req.headers)
 
-    const metadata = b4a.from(base64Metadata, 'base64url')
-    const contentHash = b4a.from(hexContentHash, 'hex')
-    const signature = b4a.from(base64Signature, 'base64')
+    if (!contentHash) {
+      return badRequest(`Missing or malformed header: '${HEADERS.CONTENT_HASH}'`)
+    } else if (!signature) {
+      return badRequest(`Missing or malformed header: '${HEADERS.SIGNATURE}'`)
+    }
 
     const valid = verify({ contentHash, metadata, signature, userID })
 
     if (!valid) {
-      // TODO: better error handling
-      throw new Error('Invalid signature')
+      badRequest('Invalid signature')
     }
 
     const contentPath = path.join(this._contentDir, hexContentHash)
@@ -159,10 +158,10 @@ class Relay {
       const hash = hasher.digest('hex')
 
       if (hash !== hexContentHash) {
-        // Remove that invalid file. Since we would have responded with success if it existed before,
-        // we can be sure that we are not deleting a file created by another request.
-        // alternatively, we could skip this step, and do ocasional garbage collection
-        // by deleting files that are not refrenced by any valid record.
+      // Remove that invalid file. Since we would have responded with success if it existed before,
+      // we can be sure that we are not deleting a file created by another request.
+      // alternatively, we could skip this step, and do ocasional garbage collection
+      // by deleting files that are not refrenced by any valid record.
         fs.unlinkSync(contentPath)
         // TODO: better error handling
         throw new Error('Hash mismatch')
@@ -177,7 +176,7 @@ class Relay {
     })
 
     function success () {
-      // Save metadata
+    // Save metadata
       createDirectoryIfDoesNotExist(path.join(self._recordsDir, userID))
 
       const metadataPath = path.join(self._recordsDir, req.url)
@@ -191,6 +190,14 @@ class Relay {
       fs.writeFileSync(metadataPath, metadata)
 
       res.writeHead(200, 'OK')
+      res.end()
+    }
+
+    /**
+   * @param {string} message
+   */
+    function badRequest (message) {
+      res.writeHead(400, message)
       res.end()
     }
   }
@@ -238,10 +245,10 @@ class Relay {
 }
 
 /**
-     * @param {string} path
-     *
-     * return {string | null}
-     */
+       * @param {string} path
+       *
+       * return {string | null}
+       */
 function readRecordIfExists (path) {
   try {
     return fs.readFileSync(path, { encoding: 'utf8' })
@@ -257,7 +264,20 @@ function readRecordIfExists (path) {
 function createDirectoryIfDoesNotExist (path) {
   try {
     fs.mkdirSync(path)
+  } catch {}
+}
+
+/**
+ * @param {string} url
+ */
+function validateUserID (url) {
+  try {
+    const userID = url.split('/')[1]
+    const publicKey = z32.decode(userID)
+    if (publicKey.length === 32) return true
   } catch { }
+
+  return false
 }
 
 module.exports = Relay

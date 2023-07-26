@@ -7,14 +7,16 @@ const fetch = require('node-fetch')
 
 const Relay = require('../index.js')
 const Client = require('../lib/client.js')
-const { HEADERS_NAMES } = require('../lib/shared.js')
+const { HEADERS_NAMES, HEADERS } = require('../lib/shared.js')
 
 test('method not allowed', async (t) => {
-  const relay = new Relay()
+  const relay = new Relay(tmpdir())
+
+  const client = new Client()
 
   const address = await relay.listen()
 
-  const response = await fetch(address, { method: 'POST' })
+  const response = await fetch(address + '/' + client.id + '/foo', { method: 'POST' })
 
   t.is(response.status, 405)
   t.is(response.statusText, 'Method not allowed')
@@ -26,7 +28,9 @@ test('basic - options', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
-  const response = await fetch(address + '/foo/bar', {
+  const client = new Client()
+
+  const response = await fetch(address + '/' + client.id + '/bar', {
     method: 'OPTIONS'
   })
 
@@ -39,7 +43,7 @@ test('basic - options', async (t) => {
 })
 
 test('basic - put & get', async (t) => {
-  const relay = new Relay()
+  const relay = new Relay(tmpdir())
 
   const address = await relay.listen()
 
@@ -79,6 +83,92 @@ test('basic - put & get', async (t) => {
 
   relay.close()
 })
+
+test('get - 404', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const userID = '8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo'
+  // GET
+  const client = new Client()
+
+  t.plan(2)
+
+  try {
+    await client.get(address, userID, '/test.txt')
+  } catch (error) {
+    t.is(error.message, '404')
+    t.is(error.cause, 'File not found')
+  }
+
+  relay.close()
+})
+
+test('invalid userID', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const userID = 'foo'
+  // GET
+  const client = new Client()
+  await client.put(address, '/test.txt', b4a.from('fff'))
+
+  t.plan(4)
+
+  try {
+    await client.get(address, userID, '/test.txt')
+  } catch (error) {
+    t.is(error.message, '400')
+    t.is(error.cause, 'Invalid userID')
+  }
+
+  const response = await fetch(
+    address + '/foo/test.txt', {
+      method: 'PUT',
+      body: 'ffff'
+    })
+
+  t.is(response.status, 400)
+  t.is(response.statusText, 'Invalid userID')
+
+  relay.close()
+})
+
+test('missing headers', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const client = new Client()
+  await client.put(address, '/test.txt', b4a.from('fff'))
+
+  const response = await fetch(
+    address + '/' + client.id, {
+      method: 'PUT',
+      body: 'ffff'
+    })
+
+  t.is(response.status, 400)
+  t.is(response.statusText, `Missing or malformed header: '${HEADERS.CONTENT_HASH}'`)
+
+  const response2 = await fetch(
+    address + '/' + client.id, {
+      method: 'PUT',
+      body: 'ffff',
+      headers: {
+        'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
+      }
+    })
+
+  t.is(response2.status, 400)
+  t.is(response2.statusText, `Missing or malformed header: '${HEADERS.SIGNATURE}'`)
+
+  relay.close()
+})
+
+test.skip('put - invalid', async (t) => { })
 
 function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)

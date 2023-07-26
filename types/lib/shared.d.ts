@@ -42,4 +42,15 @@ export function verify({ contentHash, metadata, signature, userID }: {
     signature: Uint8Array;
     userID: string;
 }): any;
+/**
+ * @param {Map<string, string> | import('http').IncomingHttpHeaders} headers
+ */
+export function decodeHeaders(headers: Map<string, string> | import('http').IncomingHttpHeaders): {
+    metadata: any;
+    contentHash: any;
+    signature: any;
+    hexContentHash: string;
+    base64Signature: string;
+    base64Metadata: string;
+};
 //# sourceMappingURL=shared.d.ts.map
