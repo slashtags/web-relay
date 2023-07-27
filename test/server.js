@@ -7,16 +7,16 @@ const EventSource = require('eventsource')
 const fetch = require('node-fetch')
 
 const Relay = require('../index.js')
-const { HEADERS_NAMES, HEADERS } = require('../lib/shared.js')
+const { createKeyPair, HEADERS_NAMES, HEADERS, Metadata, ContentHash, Signature } = require('../lib/shared.js')
+
+const ZERO_SEED = b4a.alloc(32).fill(0)
+const ZERO_ID = '8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo'
 
 test('method not allowed', async (t) => {
   const relay = new Relay(tmpdir())
 
-  const client = new Client()
-
   const address = await relay.listen()
-
-  const response = await fetch(address + '/' + client.id + '/foo', { method: 'POST' })
+  const response = await fetch(address + '/' + ZERO_ID + '/foo', { method: 'POST' })
 
   t.is(response.status, 405)
   t.is(response.statusText, 'Method not allowed')
@@ -28,9 +28,7 @@ test('basic - options', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
-  const client = new Client()
-
-  const response = await fetch(address + '/' + client.id + '/bar', {
+  const response = await fetch(address + '/' + ZERO_ID + '/bar', {
     method: 'OPTIONS'
   })
 
@@ -47,18 +45,30 @@ test('basic - put & get', async (t) => {
 
   const address = await relay.listen()
 
-  const userID = '8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo'
+  const keyPair = createKeyPair(ZERO_SEED)
 
   const content = b4a.from(JSON.stringify({
     name: 'Alice'
   }))
 
   {
-    const keyPair = Client.createKeyPair(b4a.alloc(32).fill(0))
-    const client = new Client(keyPair)
+    const contentHash = await ContentHash.hash(content)
+    const metadata = Metadata.encode({})
+    const signature = Signature.sign({ metadata, contentHash, secretKey: keyPair.secretKey })
+
+    const headers = {
+      [HEADERS.CONTENT_HASH]: ContentHash.serialize(contentHash),
+      [HEADERS.METADATA]: Metadata.serialize(metadata),
+      [HEADERS.SIGNATURE]: Signature.serialize(signature),
+      [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+    }
 
     // PUT
-    const response = await client.put(address, '/test.txt', content, { metadata: { timestamp: 1234567890 } })
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers,
+      body: content
+    })
 
     t.is(response.status, 200)
     t.is(response.statusText, 'OK')
@@ -66,19 +76,22 @@ test('basic - put & get', async (t) => {
 
   {
     // GET
-    const client = new Client()
-    const response = await client.get(address, userID, '/test.txt')
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt')
+
+    t.is(response.status, 200)
+    t.is(response.statusText, 'OK')
+
+    t.is(response.headers.get(HEADERS.METADATA), 'e30=')
+    t.is(response.headers.get(HEADERS.SIGNATURE), 'EAOQ2jrXcsAGbHB2jy2zhJT53I/EggZ1wcGBwudW2KGufP7ekSjshc+FU+FZ9tQNFWvgsB1u1XyMujJovnGCBQ==')
+    t.is(response.headers.get(HEADERS.CONTENT_HASH), '59b11ff3669fca113f32fe2d4715ccc7302a140dda0d2826d6b68a9c63495fbb')
 
     let recieved = Buffer.alloc(0)
 
-    for await (const chunk of response) {
+    for await (const chunk of response.body) {
       recieved = Buffer.concat([recieved, chunk])
     }
 
     t.alike(recieved, content)
-    t.ok(response.valid)
-    t.is(response.metadata.timestamp, 1234567890)
-    t.is(response.hash, '59b11ff3669fca113f32fe2d4715ccc7302a140dda0d2826d6b68a9c63495fbb')
   }
 
   relay.close()
@@ -126,9 +139,9 @@ test('invalid userID', async (t) => {
 
   const response = await fetch(
     address + '/foo/test.txt', {
-    method: 'PUT',
-    body: 'ffff'
-  })
+      method: 'PUT',
+      body: 'ffff'
+    })
 
   t.is(response.status, 400)
   t.is(response.statusText, 'Invalid userID')
@@ -146,21 +159,21 @@ test('missing headers', async (t) => {
 
   const response = await fetch(
     address + '/' + client.id, {
-    method: 'PUT',
-    body: 'ffff'
-  })
+      method: 'PUT',
+      body: 'ffff'
+    })
 
   t.is(response.status, 400)
   t.is(response.statusText, `Missing or malformed header: '${HEADERS.CONTENT_HASH}'`)
 
   const response2 = await fetch(
     address + '/' + client.id, {
-    method: 'PUT',
-    body: 'ffff',
-    headers: {
-      'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
-    }
-  })
+      method: 'PUT',
+      body: 'ffff',
+      headers: {
+        'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
+      }
+    })
 
   t.is(response2.status, 400)
   t.is(response2.statusText, `Missing or malformed header: '${HEADERS.SIGNATURE}'`)
@@ -200,6 +213,6 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
-function tmpdir() {
+function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)
 }

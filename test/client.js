@@ -109,6 +109,6 @@ test.skip('send pending to relay after initialization', async (t) => {
   relay.close()
 })
 
-function tmpdir() {
+function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)
 }
