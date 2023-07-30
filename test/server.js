@@ -84,7 +84,7 @@ test('basic - put & get', async (t) => {
     let recieved = Buffer.alloc(0)
 
     for await (const chunk of response.body) {
-      recieved = Buffer.concat([recieved, chunk])
+      recieved = Buffer.concat([recieved, b4a.from(chunk)])
     }
 
     t.alike(recieved, content)
@@ -124,7 +124,7 @@ test('missing header', async (t) => {
   const address = await relay.listen()
 
   const response = await fetch(
-    address + '/' + ZERO_ID + '/foo.txt', {
+    address + '/' + ZERO_ID + '/test.txt', {
       method: 'PUT',
       body: 'ffff'
     })
@@ -250,7 +250,7 @@ test('put - save most rercent timestamp', async (t) => {
     let recieved = Buffer.alloc(0)
 
     for await (const chunk of response.body) {
-      recieved = Buffer.concat([recieved, chunk])
+      recieved = Buffer.concat([recieved, b4a.from(chunk)])
     }
 
     t.alike(recieved, b4a.from('newest'))
@@ -259,25 +259,80 @@ test('put - save most rercent timestamp', async (t) => {
   relay.close()
 })
 
-test.skip('subscribe', async (t) => {
+test('subscribe', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
-  const keyPair = Client.createKeyPair(b4a.alloc(32).fill(0))
-  const client = new Client(keyPair)
+  const keyPair = createKeyPair(ZERO_SEED)
 
-  const url = address + '/subscribe/' + client.id + '/foo.txt'
+  const contentA = b4a.from('aaaaa')
+  const a = await Record.create(keyPair, '/test.txt', contentA)
 
-  const eventsource = new EventSource(url)
+  {
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers: {
+        [HEADERS.RECORD]: a.serialize('base64')
+      },
+      body: contentA
+    })
 
-  const te = t.test('eventsource')
-  te.plan(1)
+    t.is(response.status, 200)
+    t.is(response.statusText, 'OK')
+  }
 
-  eventsource.on('message', ({ data }) => {
-    te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/foo.txt put 04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9')
+  const contentB = b4a.from('bbbbb')
+  const b = await Record.create(keyPair, '/test.txt', contentB)
+
+  {
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers: {
+        [HEADERS.RECORD]: b.serialize('base64')
+      },
+      body: contentB
+    })
+
+    t.is(response.status, 200)
+    t.is(response.statusText, 'OK')
+  }
+
+  const url = address + '/subscribe/' + ZERO_ID + '/test.txt'
+  const eventsource = new EventSource(url, {
+    headers: {
+      // Inform the relay about the last record we have
+      // [HEADERS.RECORD]: a.serialize('base64')
+    }
   })
 
-  client.put(address, '/foo.txt', b4a.from('foo'))
+  const contentC = b4a.from('ccccc')
+  const c = await Record.create(keyPair, '/test.txt', contentC)
+
+  const te = t.test('eventsource')
+  te.plan(2)
+
+  let count = 0
+
+  eventsource.on('message', ({ data }) => {
+    if (count++ === 0) {
+      te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/test.txt ' + b.serialize('base64'), 'immediatly sent more recent record')
+    } else {
+      te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/test.txt ' + c.serialize('base64'), 'sent live new record')
+    }
+  })
+
+  {
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers: {
+        [HEADERS.RECORD]: c.serialize('base64')
+      },
+      body: contentC
+    })
+
+    t.is(response.status, 200)
+    t.is(response.statusText, 'OK')
+  }
 
   await te
 
