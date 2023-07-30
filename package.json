@@ -35,5 +35,9 @@
     "level": "^8.0.0",
     "node-fetch": "^2.6.12",
     "sodium-universal": "^4.0.0"
+  },
+  "exports": {
+    "./client": "./lib/client/index.js",
+    "./server": "./lib/client/index.js"
   }
 }

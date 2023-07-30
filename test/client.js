@@ -2,10 +2,13 @@ const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
 
-const Client = require('../lib/client.js')
+const Client = require('../lib/client/index.js')
 const Relay = require('../index.js')
+const { createKeyPair } = require('../lib/utils.js')
 
-test.skip('relay: put - get', async (t) => {
+const ZERO_SEED = b4a.alloc(32).fill(0)
+
+test('relay: put - get', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
@@ -18,16 +21,17 @@ test.skip('relay: put - get', async (t) => {
 
   const url = await a.createURL('foo')
 
-  const b = new Client({ storage: tmpdir(), relay: address })
+  const b = new Client({ storage: tmpdir() })
 
   t.alike(await b.get(url), value)
+
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   const updated = b4a.from('baz')
   await a.put('foo', updated)
 
   t.alike(await a.get(url), updated)
 
-  // First read cached data, while reading from the relay in the background
   t.alike(await b.get(url), value)
 
   // Wait till the relay responds with updated data
@@ -35,7 +39,7 @@ test.skip('relay: put - get', async (t) => {
 
   t.alike(await b.get(url), updated)
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   const pending = []
 
@@ -51,8 +55,8 @@ test.skip('relay: put - get', async (t) => {
   relay.close()
 })
 
-test.skip('local (no relay connection): put - get', async (t) => {
-  const keyPair = Client.createKeyPair(b4a.alloc(32).fill(0))
+test('local (no relay connection): put - get', async (t) => {
+  const keyPair = createKeyPair(ZERO_SEED)
   const a = new Client({ storage: tmpdir(), keyPair })
 
   const value = b4a.from('bar')
@@ -76,8 +80,8 @@ test.skip('local (no relay connection): put - get', async (t) => {
   t.alike(pending, ['pending-records!/foo'], 'save pending writes')
 })
 
-test.skip('send pending to relay after initialization', async (t) => {
-  const keyPair = Client.createKeyPair(b4a.alloc(32).fill(0))
+test('send pending to relay after initialization', async (t) => {
+  const keyPair = createKeyPair(ZERO_SEED)
   const storage = tmpdir()
 
   const a = new Client({ storage, keyPair })
@@ -107,6 +111,10 @@ test.skip('send pending to relay after initialization', async (t) => {
   t.alike(fromRelay, value)
 
   relay.close()
+})
+
+test.skip('subscribe', async (t) => {
+
 })
 
 function tmpdir () {
