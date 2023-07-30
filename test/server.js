@@ -42,7 +42,7 @@ test('basic - options', async (t) => {
   relay.close()
 })
 
-test.skip('basic - put & get', async (t) => {
+test('basic - put & get', async (t) => {
   const relay = new Relay(tmpdir())
 
   const address = await relay.listen()
@@ -54,10 +54,10 @@ test.skip('basic - put & get', async (t) => {
   }))
 
   {
-    const record = await Record.createSigned(content, keyPair)
+    const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
 
     const headers = {
-      [HEADERS.RECORD]: record.toBase64(),
+      [HEADERS.RECORD]: record.serialize('base64'),
       [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
     }
 
@@ -79,7 +79,7 @@ test.skip('basic - put & get', async (t) => {
     t.is(response.status, 200)
     t.is(response.statusText, 'OK')
 
-    t.is(response.headers.get(HEADERS.RECORD), 'e30=')
+    t.is(response.headers.get(HEADERS.RECORD), 'vG8/96qG66mjz7tGPwZhY5cbMs0m/7rKaM1Cieve7CFdpBYEB9EtQfJK85Y8MlbwbQEv0VOL1u9pK9CGre+5BlmxH/Nmn8oRPzL+LUcVzMcwKhQN2g0oJta2ipxjSV+7gJaYAAAAeyJmb28iOiJiYXIifQ==')
 
     let recieved = Buffer.alloc(0)
 
@@ -98,18 +98,9 @@ test('get - 404', async (t) => {
 
   const address = await relay.listen()
 
-  const userID = '8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo'
-  // GET
-  const client = new Client()
-
-  t.plan(2)
-
-  try {
-    await client.get(address, userID, '/test.txt')
-  } catch (error) {
-    t.is(error.message, '404')
-    t.is(error.cause, 'File not found')
-  }
+  const response = await fetch(address + '/' + ZERO_ID + '/test.txt')
+  t.is(response.status, 404)
+  t.is(response.statusText, 'File not found')
 
   relay.close()
 })
@@ -120,70 +111,155 @@ test('invalid userID', async (t) => {
   const address = await relay.listen()
 
   const userID = 'foo'
-  // GET
-  const client = new Client()
-  await client.put(address, '/test.txt', b4a.from('fff'))
-
-  t.plan(4)
-
-  try {
-    await client.get(address, userID, '/test.txt')
-  } catch (error) {
-    t.is(error.message, '400')
-    t.is(error.cause, 'Invalid userID')
-  }
-
-  const response = await fetch(
-    address + '/foo/test.txt', {
-      method: 'PUT',
-      body: 'ffff'
-    })
-
+  const response = await fetch(address + '/' + userID + '/test.txt')
   t.is(response.status, 400)
   t.is(response.statusText, 'Invalid userID')
 
   relay.close()
 })
 
-test('missing headers', async (t) => {
+test('missing header', async (t) => {
   const relay = new Relay(tmpdir())
 
   const address = await relay.listen()
 
-  const client = new Client()
-  await client.put(address, '/test.txt', b4a.from('fff'))
-
   const response = await fetch(
-    address + '/' + client.id, {
+    address + '/' + ZERO_ID + '/foo.txt', {
       method: 'PUT',
       body: 'ffff'
     })
 
   t.is(response.status, 400)
-  t.is(response.statusText, `Missing or malformed header: '${HEADERS.CONTENT_HASH}'`)
-
-  const response2 = await fetch(
-    address + '/' + client.id, {
-      method: 'PUT',
-      body: 'ffff',
-      headers: {
-        'x-slashtags-web-relay-content-hash': 'f'.repeat(64)
-      }
-    })
-
-  t.is(response2.status, 400)
-  t.is(response2.statusText, `Missing or malformed header: '${HEADERS.SIGNATURE}'`)
+  t.is(response.statusText, `Missing or malformed header: '${HEADERS.RECORD}'`)
 
   relay.close()
 })
 
-test.skip('put - invalid signature', async (t) => {
+test('put - invalid signature', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const header = record.serialize('base64')
+
+  const headers = {
+    [HEADERS.RECORD]: header.slice(0, header.length - 5),
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  t.is(response.status, 400)
+  t.is(response.statusText, 'Invalid signature')
+
+  relay.close()
 })
 
-test.skip('put - hash mismatch', async (t) => {
+test('put - Invalid hash', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const header = record.serialize('base64')
+
+  const headers = {
+    [HEADERS.RECORD]: header,
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+    method: 'PUT',
+    headers,
+    body: b4a.from('INVALID CONTENT')
+  })
+
+  t.is(response.status, 400)
+  t.is(response.statusText, 'Invalid content hash')
+
+  relay.close()
 })
 
-test('subscribe', async (t) => {
+test('put - save most rercent timestamp', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const contentA = b4a.from('oldest')
+  const contentB = b4a.from('newest')
+
+  const a = await Record.create(keyPair, '/test.txt', contentA, { timestamp: 10000000 })
+  const b = await Record.create(keyPair, '/test.txt', contentB, { timestamp: 20000000 })
+
+  {
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers: {
+        [HEADERS.RECORD]: b.serialize('base64')
+      },
+      body: contentB
+    })
+
+    t.is(response.status, 200)
+  }
+
+  {
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+      method: 'PUT',
+      headers: {
+        [HEADERS.RECORD]: a.serialize('base64')
+      },
+      body: contentA
+    })
+
+    t.is(response.status, 409)
+    t.is(response.statusText, 'Conflict')
+    t.is(response.headers.get(HEADERS.RECORD), b.serialize('base64'))
+  }
+
+  {
+    // GET
+    const response = await fetch(address + '/' + ZERO_ID + '/test.txt')
+
+    t.is(response.status, 200)
+    t.is(response.statusText, 'OK')
+
+    t.is(response.headers.get(HEADERS.RECORD), b.serialize('base64'))
+
+    let recieved = Buffer.alloc(0)
+
+    for await (const chunk of response.body) {
+      recieved = Buffer.concat([recieved, chunk])
+    }
+
+    t.alike(recieved, b4a.from('newest'))
+  }
+
+  relay.close()
+})
+
+test.skip('subscribe', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
