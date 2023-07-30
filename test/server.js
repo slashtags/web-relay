@@ -34,7 +34,7 @@ test('basic - options', async (t) => {
     method: 'OPTIONS'
   })
 
-  t.is(response.headers.get('access-control-allow-headers'), HEADERS_NAMES)
+  t.is(response.headers.get('access-control-allow-headers'), '*')
   t.is(response.headers.get('access-control-allow-methods'), 'GET, PUT, OPTIONS')
   t.is(response.headers.get('access-control-allow-origin'), '*')
   t.is(response.headers.get('access-control-expose-headers'), HEADERS_NAMES)
@@ -255,6 +255,42 @@ test('put - save most rercent timestamp', async (t) => {
 
     t.alike(recieved, b4a.from('newest'))
   }
+
+  relay.close()
+})
+
+test('put - url encoded path', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const path = '/foo bar 🙏.txt'
+
+  const record = await Record.create(keyPair, path, content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const header = record.serialize('base64')
+
+  const headers = {
+    [HEADERS.RECORD]: header,
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  const url = encodeURI(address + '/' + ZERO_ID + path)
+
+  // PUT
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  t.is(response.status, 200)
+  t.is(response.statusText, 'OK')
 
   relay.close()
 })
