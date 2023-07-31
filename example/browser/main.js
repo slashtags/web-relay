@@ -1,4 +1,4 @@
-const Client = require('@synonymdev/web-relay/client')
+const Client = require('@synonymdev/web-relay/lib/client/index.js')
 const b4a = require('b4a')
 
 // Most of the code below is just for the UI,
@@ -6,19 +6,30 @@ const b4a = require('b4a')
 
 const address = 'http://localhost:3000'
 
-const client = new Client({
+const alice = new Client({
   relay: address
 })
 
-client.subscribe('/foo')
+const bob = new Client({
+  relay: address
+})
 
+const canvas = document.getElementById("price-canvas").getContext("2d");
+
+// ==== SUBSCRIBE ====
 const price = document.getElementById('price')
-client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/price?relay=http://localhost:3000", (value) => {
+bob.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/price?relay=http://localhost:3000", (value) => {
   price.innerHTML = '$' + b4a.toString(value)
 })
 
+bob.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/history?relay=http://localhost:3000", (value) => {
+  const history = JSON.parse(b4a.toString(value))
+  drawGraph(history)
+})
+// ==================
+
 {
-  const form = document.getElementById('put')
+  const form = document.getElementById('alice')
 
   const button = form.querySelector('#button')
   const keyInput = form.querySelector('#key')
@@ -36,7 +47,7 @@ client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/pri
     const value = valueInput.value
 
     // ==== PUT ==== 
-    await client.put(key, Buffer.from(value))
+    await alice.put(key, Buffer.from(value))
       .catch(error => {
         alert(error.message)
       })
@@ -60,7 +71,7 @@ client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/pri
 }
 
 {
-  const form = document.getElementById('get')
+  const form = document.getElementById('bob')
 
   const button = form.querySelector('#button')
   const keyInput = form.querySelector('#key')
@@ -73,15 +84,16 @@ client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/pri
   async function get(event) {
     event.preventDefault()
     const key = keyInput.value
+    const url = await alice.createURL(key)
 
     // ==== GET ==== 
-    const value = await client.get(key)
+    const value = await bob.get(url)
       .catch(error => {
         alert(error.message)
       })
     // ============= 
 
-    alert(`Got key:${key} value: ${value}`)
+    alert(`Key:${key} value: ${b4a.toString(value)}`)
   }
 
   function checkDisabled() {
@@ -93,4 +105,27 @@ client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/pri
       button.disabled = false
     }
   }
+}
+
+function drawGraph(data) {
+  canvas.clearRect(0, 0, 400, 400);
+
+  var xValues = [];
+  var yValues = [];
+
+  for (var i = 0; i < data.length; i++) {
+    xValues.push(i);
+    yValues.push(data[i] * 200 / 1000000);
+  }
+
+  canvas.beginPath();
+  canvas.moveTo(0, 300);
+  for (var i = 0; i < data.length; i++) {
+    canvas.lineTo(i * 400 / 7, yValues[i]);
+  }
+  canvas.lineTo(400, 300);
+  canvas.stroke();
+
+  canvas.fillStyle = "green";
+  canvas.fill();
 }

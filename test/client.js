@@ -8,8 +8,7 @@ const { createKeyPair } = require('../lib/utils.js')
 
 const ZERO_SEED = b4a.alloc(32).fill(0)
 
-// TODO: make reliable test
-test.skip('relay: put - get', async (t) => {
+test('relay: put - get', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
@@ -33,14 +32,16 @@ test.skip('relay: put - get', async (t) => {
 
   t.alike(await a.get(url), updated)
 
+  // Wwait for the server to get the new update
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // First request will trigger this._getFromRelay, but immediatly return the cached value
   t.alike(await b.get(url), value)
 
   // Wait till the relay responds with updated data
   await new Promise(resolve => setTimeout(resolve, 100))
 
   t.alike(await b.get(url), updated)
-
-  await new Promise(resolve => setTimeout(resolve, 100))
 
   const pending = []
 
