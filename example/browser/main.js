@@ -1,4 +1,4 @@
-const Client = require('@synonymdev/web-relay/lib/client')
+const Client = require('@synonymdev/web-relay/client')
 const b4a = require('b4a')
 
 // Most of the code below is just for the UI,

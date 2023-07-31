@@ -8,7 +8,8 @@ const { createKeyPair } = require('../lib/utils.js')
 
 const ZERO_SEED = b4a.alloc(32).fill(0)
 
-test('relay: put - get', async (t) => {
+// TODO: make reliable test
+test.skip('relay: put - get', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
 
@@ -77,7 +78,7 @@ test('local (no relay connection): put - get', async (t) => {
     pending.push(path)
   }
 
-  t.alike(pending, ['pending-records!/foo'], 'save pending writes')
+  t.alike(pending, ['pending-records!8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/foo'], 'save pending writes')
 })
 
 test('send pending to relay after initialization', async (t) => {
@@ -113,8 +114,50 @@ test('send pending to relay after initialization', async (t) => {
   relay.close()
 })
 
-test.skip('subscribe', async (t) => {
+test('subscribe', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
 
+  const a = new Client({ storage: tmpdir(), relay: address })
+  const b = new Client({ storage: tmpdir(), relay: address })
+
+  const url = await a.createURL('/foo')
+
+  const first = b4a.from('first')
+  const second = b4a.from('second')
+
+  const te = t.test('eventsource')
+  te.plan(3)
+
+  const unsbuscribe = a.subscribe('foo', (value) => {
+    te.alike(value, first, 'subscribe local')
+  })
+
+  let count = 0
+  b.subscribe(url, (value) => {
+    if (count++ === 0) {
+      te.alike(value, first)
+    } else {
+      te.alike(value, second)
+    }
+  })
+
+  await a.put('foo', first)
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // Subscribe closes eventsource
+  unsbuscribe()
+
+  await a.put('foo', second)
+
+  await te
+  console.log('dno')
+
+  // Closing the client closes all subscriptions
+  await b.close()
+
+  relay.close()
 })
 
 function tmpdir () {

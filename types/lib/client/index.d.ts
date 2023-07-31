@@ -5,6 +5,7 @@ declare class Client {
      * @param {string} path
      */
     static validatePath(path: string): void;
+    static createKeyPair: typeof createKeyPair;
     static ERROR_CODES: {
         INVALID_PATH: {
             message: string;
@@ -31,6 +32,8 @@ declare class Client {
     _store: import('level').Level<string, any>;
     /** @type {Map<string, ReturnType<setTimeout>>} */
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
+    /** @type {Map<string, () => void>} */
+    _supscriptions: Map<string, () => void>;
     get key(): any;
     get id(): string;
     /**
@@ -49,12 +52,14 @@ declare class Client {
      *
      * @returns {Promise<Uint8Array | null>}
      */
-    get(path: string): Promise<Uint8Array | null>;
+    get(path: string, opts: any): Promise<Uint8Array | null>;
     /**
      * @param {string} path
      * @param {(value: Uint8Array | null) => any} onupdate
+     *
+     * @returns {() => void}
      */
-    subscribe(path: string, onupdate: (value: Uint8Array | null) => any): void;
+    subscribe(path: string, onupdate: (value: Uint8Array | null) => any): () => void;
     /**
        * Return a url that can be shared by others to acess a file.
        *
@@ -123,5 +128,6 @@ declare namespace Client {
 }
 type JSONObject = import('../record.js').JSONObject;
 import Record = require("../record.js");
+import { createKeyPair } from "../utils.js";
 type KeyPair = import('../record.js').KeyPair;
 //# sourceMappingURL=index.d.ts.map

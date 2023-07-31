@@ -37,7 +37,8 @@
     "sodium-universal": "^4.0.0"
   },
   "exports": {
+    ".": "./index.js",
     "./client": "./lib/client/index.js",
-    "./server": "./lib/client/index.js"
+    "./server": "./lib/server/index.js"
   }
 }
