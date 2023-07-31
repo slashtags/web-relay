@@ -2,7 +2,7 @@ export = Record;
 declare class Record {
     /**
      * @param {KeyPair} keyPair
-     * @param {string} path
+     * @param {string} path - full path of the file <userID>/path/to/file
      * @param {Uint8Array} content
      * @param {object} [opts]
      * @param {number} [opts.timestamp]
@@ -11,7 +11,7 @@ declare class Record {
     static create(keyPair: KeyPair, path: string, content: Uint8Array, opts?: {
         timestamp?: number;
         metadata?: JSONObject;
-    }): Promise<import("./record.js")>;
+    }): Promise<Record>;
     /**
      * Deserialize the saved record to a hash, timestamp and metadata
      *
@@ -21,7 +21,7 @@ declare class Record {
         value: null;
         error: Error;
     } | {
-        value: import("./record.js");
+        value: Record;
         error: null;
     };
     /**
@@ -54,10 +54,9 @@ declare class Record {
     /**
      * Verify this record for the publicKey of an author, and the associated path
      *
-     * @param {Uint8Array} publicKey
-     * @param {string} path
+     * @param {string} path - /:userID/path/to/file
      */
-    verify(publicKey: Uint8Array, path: string): any;
+    verify(path: string): any;
 }
 declare namespace Record {
     export { JSONValue, JSONObject, KeyPair };

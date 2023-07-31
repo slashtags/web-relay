@@ -45,52 +45,11 @@ declare class Client {
         metadata?: JSONObject;
     }): Promise<void>;
     /**
-     * Remove the file from pending database
-     *
-     * @param {string} path - path relative to the user's root
-     * @param {number} timestamp - timestamp of the record that was successfully sent to the relay
-     */
-    _removePending(path: string, timestamp: number): Promise<void>;
-    /**
-     * @param {string} path
-     * @param {Uint8Array} content
-     * @param {Record} record
-     */
-    _trySendToRelay(path: string, content: Uint8Array, record: Record): Promise<void>;
-    /**
      * @param {string} path
      *
      * @returns {Promise<Uint8Array | null>}
      */
     get(path: string): Promise<Uint8Array | null>;
-    /**
-     * @param {string} id
-     * @param {string} path
-     */
-    _getStoredRecord(id: string, path: string): Promise<Record>;
-    /**
-     * Get data from the relay and save it to the local key-value store.
-     *
-     * @param {string} relay
-     * @param {string} id - Author's ID
-     * @param {string} path
-     *
-     * @returns {Promise<Uint8Array | null>}
-     */
-    _getFromRelay(relay: string, id: string, path: string): Promise<Uint8Array | null>;
-    /**
-     * Save data to the local key-value store.
-     *
-     * @param {string} id - remote user's id
-     * @param {string} path - path relative to the user's root
-     * @param {Uint8Array} content
-     * @param {Record} record
-     */
-    _put(id: string, path: string, content: Uint8Array, record: Record): Promise<void>;
-    /**
-     * Start sending pending records to the relay.
-     */
-    _sendPending(): Promise<void>;
     /**
      * @param {string} path
      * @param {(value: Uint8Array | null) => any} onupdate
@@ -105,6 +64,59 @@ declare class Client {
        */
     createURL(path: string): Promise<string>;
     close(): Promise<void>;
+    /**
+     * Takes either SlashURL `slash:<userID>/path/to/file` or `path/to/file` and retruns the full path as `<userID>/path/to/file`
+     *
+     * @param {string} path
+     * @returns {string}
+     */
+    _fullPath(path: string): string;
+    /**
+     * Returns the relay from a url
+     *
+     * @param {string} url
+     * @Returns {string | null}
+     */
+    _parseRelay(url: string): string;
+    /**
+     * Remove the file from pending database
+     *
+     * @param {string} path - full path <userID>/path/to/file
+     * @param {number} timestamp - timestamp of the record that was successfully sent to the relay
+     */
+    _removePending(path: string, timestamp: number): Promise<void>;
+    /**
+     * @param {string} path
+     * @param {Uint8Array} content
+     * @param {Record} record
+     */
+    _trySendToRelay(path: string, content: Uint8Array, record: Record): Promise<void>;
+    /**
+     * @param {string} path
+     */
+    _getStoredRecord(path: string): Promise<Record>;
+    /**
+     * Get data from the relay and save it to the local key-value store.
+     *
+     * @param {string} relay
+     * @param {string} path
+     * @param {Record | null} saved
+     *
+     * @returns {Promise<Uint8Array | null>}
+     */
+    _getFromRelay(relay: string, path: string, saved: Record | null): Promise<Uint8Array | null>;
+    /**
+     * Save data to the local key-value store.
+     *
+     * @param {string} path - <userID>/path/to/file
+     * @param {Uint8Array} content
+     * @param {Record} record
+     */
+    _put(path: string, content: Uint8Array, record: Record): Promise<void>;
+    /**
+     * Start sending pending records to the relay.
+     */
+    _sendPending(): Promise<void>;
 }
 declare namespace Client {
     export { KeyPair, JSONObject };

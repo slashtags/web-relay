@@ -54,7 +54,7 @@ test('basic - put & get', async (t) => {
   }))
 
   {
-    const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+    const record = await Record.create(keyPair, ZERO_ID + '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
 
     const headers = {
       [HEADERS.RECORD]: record.serialize('base64'),
@@ -79,7 +79,7 @@ test('basic - put & get', async (t) => {
     t.is(response.status, 200)
     t.is(response.statusText, 'OK')
 
-    t.is(response.headers.get(HEADERS.RECORD), 'vG8/96qG66mjz7tGPwZhY5cbMs0m/7rKaM1Cieve7CFdpBYEB9EtQfJK85Y8MlbwbQEv0VOL1u9pK9CGre+5BlmxH/Nmn8oRPzL+LUcVzMcwKhQN2g0oJta2ipxjSV+7gJaYAAAAeyJmb28iOiJiYXIifQ==')
+    t.is(response.headers.get(HEADERS.RECORD), 'Xi6Eq9v+kx7gCrJ3le+4ijpaMrGWY4vcPIKF8bCToFhAprFD4RypefA16v5Q+1jUxbGzFkUcvLPOnHgFTQP/CVmxH/Nmn8oRPzL+LUcVzMcwKhQN2g0oJta2ipxjSV+7gJaYAAAAeyJmb28iOiJiYXIifQ==')
 
     let recieved = Buffer.alloc(0)
 
@@ -146,7 +146,7 @@ test('put - invalid signature', async (t) => {
     name: 'Alice'
   }))
 
-  const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const record = await Record.create(keyPair, ZERO_ID + '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
   const header = record.serialize('base64')
 
   const headers = {
@@ -178,7 +178,7 @@ test('put - Invalid hash', async (t) => {
     name: 'Alice'
   }))
 
-  const record = await Record.create(keyPair, '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const record = await Record.create(keyPair, ZERO_ID + '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
   const header = record.serialize('base64')
 
   const headers = {
@@ -209,8 +209,8 @@ test('put - save most rercent timestamp', async (t) => {
   const contentA = b4a.from('oldest')
   const contentB = b4a.from('newest')
 
-  const a = await Record.create(keyPair, '/test.txt', contentA, { timestamp: 10000000 })
-  const b = await Record.create(keyPair, '/test.txt', contentB, { timestamp: 20000000 })
+  const a = await Record.create(keyPair, ZERO_ID + '/test.txt', contentA, { timestamp: 10000000 })
+  const b = await Record.create(keyPair, ZERO_ID + '/test.txt', contentB, { timestamp: 20000000 })
 
   {
     const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
@@ -272,7 +272,7 @@ test('put - url encoded path', async (t) => {
 
   const path = '/foo bar 🙏.txt'
 
-  const record = await Record.create(keyPair, path, content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+  const record = await Record.create(keyPair, ZERO_ID + path, content, { timestamp: 10000000, metadata: { foo: 'bar' } })
   const header = record.serialize('base64')
 
   const headers = {
@@ -302,7 +302,7 @@ test('subscribe', async (t) => {
   const keyPair = createKeyPair(ZERO_SEED)
 
   const contentA = b4a.from('aaaaa')
-  const a = await Record.create(keyPair, '/test.txt', contentA)
+  const a = await Record.create(keyPair, ZERO_ID + '/test.txt', contentA)
 
   {
     const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
@@ -318,7 +318,7 @@ test('subscribe', async (t) => {
   }
 
   const contentB = b4a.from('bbbbb')
-  const b = await Record.create(keyPair, '/test.txt', contentB)
+  const b = await Record.create(keyPair, ZERO_ID + '/test.txt', contentB)
 
   {
     const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
@@ -342,7 +342,7 @@ test('subscribe', async (t) => {
   })
 
   const contentC = b4a.from('ccccc')
-  const c = await Record.create(keyPair, '/test.txt', contentC)
+  const c = await Record.create(keyPair, ZERO_ID + '/test.txt', contentC)
 
   const te = t.test('eventsource')
   te.plan(2)
