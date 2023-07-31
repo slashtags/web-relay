@@ -36,11 +36,11 @@ declare class Relay {
      */
     _handle(req: http.IncomingMessage, res: http.ServerResponse): void;
     /**
-   * Respond to preflight requests
-   *
-   * @param {http.IncomingMessage} _req
-   * @param {http.ServerResponse} res
-   */
+     * Respond to preflight requests
+     *
+     * @param {http.IncomingMessage} _req
+     * @param {http.ServerResponse} res
+     */
     _OPTIONS(_req: http.IncomingMessage, res: http.ServerResponse): void;
     /**
      * @param {http.IncomingMessage} req

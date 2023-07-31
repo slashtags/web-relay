@@ -8,17 +8,28 @@
 </style>
 </head>
 <body>
-  <form id='put'>
-    <p>Input a key and value to save to the database.</p>
-    <input type="text" id="key" />
-    <input type="text" id="value" />
-    <button id="button">Save</button>
+  <form id='alice'>
+    <h2>Alice</h2>
+  </form>
+  <form id='alice'>
+    <h2>Bob</h2>
+    <!-- <p>Bob is watching updates to "<alice>/foo", write any data to foo and watch its update here.</p> -->
   </form>
   <form id='get'>
     <p>Lookup a value by its key.</p>
     <input type="text" id="key" />
     <button id="button">Get</button>
   </form>
+  <form id='put'>
+    <p>Input a key and value to save to the database.</p>
+    <input type="text" id="key" />
+    <input type="text" id="value" />
+    <button id="button">Save</button>
+  </form>
+  <div>
+    <p>Price feed</p>
+    <b type="text" id="price" />
+  </div>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

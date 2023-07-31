@@ -1,8 +1,21 @@
-const Client = require('@synonymdev/web-relay/lib/client.js')
+const Client = require('@synonymdev/web-relay/lib/client')
+const b4a = require('b4a')
 
-const client = new Client()
+// Most of the code below is just for the UI,
+// the important parts are marked with ==== PUT ====, ==== GET === and ==== SUBSCRIBE ====
 
 const address = 'http://localhost:3000'
+
+const client = new Client({
+  relay: address
+})
+
+client.subscribe('/foo')
+
+const price = document.getElementById('price')
+client.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/price?relay=http://localhost:3000", (value) => {
+  price.innerHTML = '$' + b4a.toString(value)
+})
 
 {
   const form = document.getElementById('put')
@@ -17,25 +30,21 @@ const address = 'http://localhost:3000'
   button.addEventListener('click', save)
   button.disabled = true
 
-  function save(event) {
+  async function save(event) {
     event.preventDefault()
     const key = keyInput.value
     const value = valueInput.value
 
-    client.put(address, key, Buffer.from(value), { metadata: { updatedAt: Date.now() } })
-      .then(response => {
-        if (response.ok) {
-          console.log(response)
-          alert(`${response.status} - ${response.statusText}`)
-        }
-
-        keyInput.value = ''
-        valueInput.value = ''
-        button.disabled = true
-      })
+    // ==== PUT ==== 
+    await client.put(key, Buffer.from(value))
       .catch(error => {
         alert(error.message)
       })
+    // ============= 
+
+    keyInput.value = ''
+    valueInput.value = ''
+    button.disabled = true
   }
 
   function checkDisabled() {
@@ -61,25 +70,18 @@ const address = 'http://localhost:3000'
   button.addEventListener('click', get)
   button.disabled = true
 
-  function get(event) {
+  async function get(event) {
     event.preventDefault()
     const key = keyInput.value
 
-    client.get(address, client.id, key)
-      .then(async response => {
-        const data = []
-
-        for await (let chunk of response) {
-          for (let i = 0; i < chunk.length; i++) {
-            data.push(chunk[i])
-          }
-        }
-        const str = Buffer.from(data)
-        alert(`Got key:${key} value: ${str} metadata: ${JSON.stringify(response.metadata)}`)
-      })
+    // ==== GET ==== 
+    const value = await client.get(key)
       .catch(error => {
         alert(error.message)
       })
+    // ============= 
+
+    alert(`Got key:${key} value: ${value}`)
   }
 
   function checkDisabled() {

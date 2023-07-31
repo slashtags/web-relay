@@ -351,9 +351,9 @@ test('subscribe', async (t) => {
 
   eventsource.on('message', ({ data }) => {
     if (count++ === 0) {
-      te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/test.txt ' + b.serialize('base64'), 'immediatly sent more recent record')
+      te.is(data, b.serialize('base64'), 'immediatly sent more recent record')
     } else {
-      te.is(data, '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/test.txt ' + c.serialize('base64'), 'sent live new record')
+      te.is(data, c.serialize('base64'), 'sent live new record')
     }
   })
 
