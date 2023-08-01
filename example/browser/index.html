@@ -8,17 +8,25 @@
 </style>
 </head>
 <body>
-  <form id='put'>
-    <p>Input a key and value to save to the database.</p>
+  <form id='alice'>
+    <h2>Alice</h2>
+    <p>Write a file on Alice's side</p>
     <input type="text" id="key" />
     <input type="text" id="value" />
     <button id="button">Save</button>
   </form>
-  <form id='get'>
-    <p>Lookup a value by its key.</p>
+  <form id='bob'>
+    <p>Lookup a value from Bob's side.</p>
     <input type="text" id="key" />
     <button id="button">Get</button>
   </form>
+  <div>
+    <p>Price feed</p>
+    <b type="text" id="price"></b>
+  </div>
+  <div>
+    <canvas id="price-canvas" width="400", height="300"></canvas>
+  </div>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

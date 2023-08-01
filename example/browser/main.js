@@ -1,11 +1,35 @@
-const Client = require('@synonymdev/web-relay/lib/client.js')
+const Client = require('@synonymdev/web-relay/lib/client/index.js')
+const b4a = require('b4a')
 
-const client = new Client()
+// Most of the code below is just for the UI,
+// the important parts are marked with ==== PUT ====, ==== GET === and ==== SUBSCRIBE ====
 
 const address = 'http://localhost:3000'
 
+const alice = new Client({
+  relay: address
+})
+
+const bob = new Client({
+  relay: address
+})
+
+const canvas = document.getElementById("price-canvas").getContext("2d");
+
+// ==== SUBSCRIBE ====
+const price = document.getElementById('price')
+bob.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/price?relay=http://localhost:3000", (value) => {
+  price.innerHTML = '$' + b4a.toString(value)
+})
+
+bob.subscribe("slash:8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/history?relay=http://localhost:3000", (value) => {
+  const history = JSON.parse(b4a.toString(value))
+  drawGraph(history)
+})
+// ==================
+
 {
-  const form = document.getElementById('put')
+  const form = document.getElementById('alice')
 
   const button = form.querySelector('#button')
   const keyInput = form.querySelector('#key')
@@ -17,25 +41,21 @@ const address = 'http://localhost:3000'
   button.addEventListener('click', save)
   button.disabled = true
 
-  function save(event) {
+  async function save(event) {
     event.preventDefault()
     const key = keyInput.value
     const value = valueInput.value
 
-    client.put(address, key, Buffer.from(value), { metadata: { updatedAt: Date.now() } })
-      .then(response => {
-        if (response.ok) {
-          console.log(response)
-          alert(`${response.status} - ${response.statusText}`)
-        }
-
-        keyInput.value = ''
-        valueInput.value = ''
-        button.disabled = true
-      })
+    // ==== PUT ==== 
+    await alice.put(key, Buffer.from(value))
       .catch(error => {
         alert(error.message)
       })
+    // ============= 
+
+    keyInput.value = ''
+    valueInput.value = ''
+    button.disabled = true
   }
 
   function checkDisabled() {
@@ -51,7 +71,7 @@ const address = 'http://localhost:3000'
 }
 
 {
-  const form = document.getElementById('get')
+  const form = document.getElementById('bob')
 
   const button = form.querySelector('#button')
   const keyInput = form.querySelector('#key')
@@ -61,25 +81,19 @@ const address = 'http://localhost:3000'
   button.addEventListener('click', get)
   button.disabled = true
 
-  function get(event) {
+  async function get(event) {
     event.preventDefault()
     const key = keyInput.value
+    const url = await alice.createURL(key)
 
-    client.get(address, client.id, key)
-      .then(async response => {
-        const data = []
-
-        for await (let chunk of response) {
-          for (let i = 0; i < chunk.length; i++) {
-            data.push(chunk[i])
-          }
-        }
-        const str = Buffer.from(data)
-        alert(`Got key:${key} value: ${str} metadata: ${JSON.stringify(response.metadata)}`)
-      })
+    // ==== GET ==== 
+    const value = await bob.get(url)
       .catch(error => {
         alert(error.message)
       })
+    // ============= 
+
+    alert(`Key:${key} value: ${b4a.toString(value)}`)
   }
 
   function checkDisabled() {
@@ -91,4 +105,27 @@ const address = 'http://localhost:3000'
       button.disabled = false
     }
   }
+}
+
+function drawGraph(data) {
+  canvas.clearRect(0, 0, 400, 400);
+
+  var xValues = [];
+  var yValues = [];
+
+  for (var i = 0; i < data.length; i++) {
+    xValues.push(i);
+    yValues.push(data[i] * 200 / 1000000);
+  }
+
+  canvas.beginPath();
+  canvas.moveTo(0, 300);
+  for (var i = 0; i < data.length; i++) {
+    canvas.lineTo(i * 400 / 7, yValues[i]);
+  }
+  canvas.lineTo(400, 300);
+  canvas.stroke();
+
+  canvas.fillStyle = "green";
+  canvas.fill();
 }
