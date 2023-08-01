@@ -59,13 +59,13 @@ Creates a new Client instance.
 
 Create a Slashtags URL for the data stored at that path.
 
-#### `await client.close()`
-
-Gracefully close the connection and instance.
-
 #### `await client.put(path, content)`
 
 Creates or updates a file. `key` should be a string, and `content` param should be a Uint8Array.
+
+#### `await client.del(path)`
+
+Delete a file. `key` should be a string.
 
 #### `await client.get(url)`
 
@@ -77,3 +77,7 @@ Even if locally cached data exists, the client will reach out to the relay in th
 Watch updates to a local or a remote file, and call the `onupdate(value)` function with the current value.
 
 Call `unsubscribe()` to remove all related listeners and close resources created in `subscribe`.
+
+#### `await client.close()`
+
+Gracefully close subscriptions, and internal key value store.

@@ -161,6 +161,22 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
+test('delete', async (t) => {
+  const keyPair = createKeyPair(ZERO_SEED)
+  const a = new Client({ storage: tmpdir(), keyPair })
+
+  const value = b4a.from('bar')
+  await a.put('foo', value)
+
+  t.alike(await a.get('foo'), value)
+
+  await a.del('foo')
+
+  const url = await a.createURL('foo')
+
+  t.absent(await a.get(url), 'get local file by url')
+})
+
 function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)
 }
