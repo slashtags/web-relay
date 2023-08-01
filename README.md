@@ -59,10 +59,6 @@ Creates a new Client instance.
 
 Create a Slashtags URL for the data stored at that path.
 
-#### `await client.close()`
-
-Gracefully close the connection and instance.
-
 #### `await client.put(path, content, opts)`
 
 Creates or updates a file. `key` should be a string, and `content` param should be a Uint8Array.
@@ -70,6 +66,10 @@ Creates or updates a file. `key` should be a string, and `content` param should 
 `opts` is an object that includes the following:
 
 - `encrypted` An optional flag, if set to true the client will generate a unique encryptionKey for the file and encrypt the content with it.
+
+#### `await client.del(path)`
+
+Delete a file. `key` should be a string.
 
 #### `await client.get(url)`
 
@@ -83,3 +83,7 @@ If the url contains an encryptionKey in the fragment (`#encryptionKey=<z-base32 
 Watch updates to a local or a remote file, and call the `onupdate(value)` function with the current value.
 
 Call `unsubscribe()` to remove all related listeners and close resources created in `subscribe`.
+
+#### `await client.close()`
+
+Gracefully close subscriptions, and internal key value store.

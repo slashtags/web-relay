@@ -50,6 +50,12 @@ declare class Client {
     /**
      * @param {string} path
      *
+     * @returns {Promise<void>}
+     */
+    del(path: string, opts?: {}): Promise<void>;
+    /**
+     * @param {string} path
+     *
      * @returns {Promise<Uint8Array | null>}
      */
     get(path: string): Promise<Uint8Array | null>;
