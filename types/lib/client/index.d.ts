@@ -40,19 +40,19 @@ declare class Client {
      * @param {string} path
      * @param {Uint8Array} content
      * @param {object} [opts]
-     * @param {JSONObject} [opts.metadata]
+     * @param {boolean} [opts.encrypt]
      *
      * @returns {Promise<void>}
      */
     put(path: string, content: Uint8Array, opts?: {
-        metadata?: JSONObject;
+        encrypt?: boolean;
     }): Promise<void>;
     /**
      * @param {string} path
      *
      * @returns {Promise<Uint8Array | null>}
      */
-    get(path: string, opts: any): Promise<Uint8Array | null>;
+    get(path: string): Promise<Uint8Array | null>;
     /**
      * @param {string} path
      * @param {(value: Uint8Array | null) => any} onupdate
@@ -80,9 +80,15 @@ declare class Client {
      * Returns the relay from a url
      *
      * @param {string} url
-     * @Returns {string | null}
+     * @Returns {{relay?:string, encryptionKey?: Uint8Array}}
      */
-    _parseRelay(url: string): string;
+    _parseURL(url: string): {
+        relay: string;
+        encryptionKey?: undefined;
+    } | {
+        relay: string;
+        encryptionKey: Uint8Array;
+    };
     /**
      * Remove the file from pending database
      *
@@ -106,10 +112,11 @@ declare class Client {
      * @param {string} relay
      * @param {string} path
      * @param {Record | null} saved
+     * @param {Uint8Array} [encryptionKey]
      *
      * @returns {Promise<Uint8Array | null>}
      */
-    _getFromRelay(relay: string, path: string, saved: Record | null): Promise<Uint8Array | null>;
+    _getFromRelay(relay: string, path: string, saved: Record | null, encryptionKey?: Uint8Array): Promise<Uint8Array | null>;
     /**
      * Save data to the local key-value store.
      *
@@ -122,12 +129,28 @@ declare class Client {
      * Start sending pending records to the relay.
      */
     _sendPending(): Promise<void>;
+    /**
+     * Generates a unique encryptionKey per this user and a given path.
+     *
+     * @param {string} path
+     */
+    _generateEncryptionKey(path: string): Promise<Uint8Array>;
+    /**
+     * @param {string} path
+     * @param {Uint8Array} content
+     */
+    _encrypt(path: string, content: Uint8Array): Promise<Uint8Array | Buffer>;
+    /**
+     * @param {Uint8Array} content
+     * @param {Uint8Array} encryptionKey
+     */
+    _decrypt(content: Uint8Array, encryptionKey: Uint8Array): Promise<Uint8Array | Buffer>;
 }
 declare namespace Client {
     export { KeyPair, JSONObject };
 }
-type JSONObject = import('../record.js').JSONObject;
 import Record = require("../record.js");
 import { createKeyPair } from "../utils.js";
 type KeyPair = import('../record.js').KeyPair;
+type JSONObject = import('../record.js').JSONObject;
 //# sourceMappingURL=index.d.ts.map
