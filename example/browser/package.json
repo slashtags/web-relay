@@ -1,7 +1,7 @@
 {
   "scripts": {
     "relay": "node relay.js",
-    "relay": "node feed.js",
+    "feed": "node feed.js",
     "start": "parcel index.html"
   },
   "devDependencies": {
