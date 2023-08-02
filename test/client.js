@@ -153,11 +153,56 @@ test('subscribe', async (t) => {
   await a.put('foo', second)
 
   await te
-  console.log('dno')
 
   // Closing the client closes all subscriptions
   await b.close()
 
+  relay.close()
+})
+
+test('delete', async (t) => {
+  const keyPair = createKeyPair(ZERO_SEED)
+  const a = new Client({ storage: tmpdir(), keyPair })
+
+  const value = b4a.from('bar')
+  await a.put('foo', value)
+
+  t.alike(await a.get('foo'), value)
+
+  await a.del('foo')
+
+  const url = await a.createURL('foo')
+
+  t.absent(await a.get(url), 'get local file by url')
+})
+
+test('encrypt', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+  const a = new Client({ storage: tmpdir(), relay: address, keyPair })
+  const b = new Client({ storage: tmpdir() })
+
+  const encryptionKey = await a._generateEncryptionKey('/foo')
+
+  t.is(b4a.toString(encryptionKey, 'hex'), '88aef2be59ab3fef27f064d5e78f1727cec521ec0d775db2e8586b51c86c0e1c')
+  t.unlike(await a._generateEncryptionKey('/bar'), encryptionKey, 'unique encryption key for each path')
+  t.unlike(await b._generateEncryptionKey('/foo'), encryptionKey, 'unique encryption key for each user')
+
+  const value = b4a.from('bar')
+  await a.put('foo', value, { encrypt: true })
+
+  t.alike(await a.get('foo'), value, 'read locally encrypted file (at rest) without providing any key')
+
+  const url = await a.createURL('foo')
+
+  t.alike(await b.get(url), value, 'get remote encrypted file (e2e)')
+
+  const fromSubscribe = await new Promise((resolve) => b.subscribe(url, resolve))
+  t.alike(fromSubscribe, value)
+
+  b.close()
   relay.close()
 })
 
