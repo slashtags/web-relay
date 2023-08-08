@@ -8,6 +8,15 @@ const { createKeyPair } = require('../lib/utils.js')
 
 const ZERO_SEED = b4a.alloc(32).fill(0)
 
+test('storage', async (t) => {
+  const storage = tmpdir()
+  const client = new Client({ storage })
+
+  const store = client._store.location
+
+  t.is(store, storage + '/' + client.id)
+})
+
 test('relay: put - get', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
