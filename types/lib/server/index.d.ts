@@ -9,6 +9,8 @@ declare class Relay {
     _storageDir: string;
     _recordsDir: string;
     _contentDir: string;
+    /** @type {import('lmdb').RootDatabase<Uint8Array>} */
+    _recordsDB: import('lmdb').RootDatabase<Uint8Array>;
     /** @type {Map<string, Set<(record: Record) => void>>} */
     _subscriptions: Map<string, Set<(record: Record) => void>>;
     /**

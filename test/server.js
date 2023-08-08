@@ -376,6 +376,35 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
+test('save deep path (path/to/file)', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const record = await Record.create(keyPair, ZERO_ID + '/path/to/file', content)
+
+  const headers = {
+    [HEADERS.RECORD]: record.serialize('base64'),
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  const response = await fetch(address + '/' + ZERO_ID + '/path/to/file', {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  t.is(response.status, 200)
+  t.is(response.statusText, 'OK')
+
+  relay.close()
+})
+
 function tmpdir () {
   return os.tmpdir() + Math.random().toString(16).slice(2)
 }
