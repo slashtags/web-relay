@@ -25,22 +25,23 @@ relay.listen(3000).then(() => {
 
 ### client 
 
-```
+```js
 const Client = require('@synonymdev/web-relay/client')
 
-const alice = new Client({relay: 'https://example.com'})
+const alice = new Client({relay: 'http://localhost:3000'})
 
-await alice.put('/foo', Buffer.from('bar'))
+;(async () => {
+  const url = await alice.createURL('/foo')
+  console.log('url', url)
 
-const saved = alice.get('/foo')
-// Buffer.from('bar')
+  await alice.put('/foo', Buffer.from('bar'))
+  const saved = await alice.get('/foo')
+  console.log(saved.toString())
 
-const url = await alice.createURL('/foo')
-
-const bob = new Client()
-
-const resolved = await bob.get(url)
-// Buffer.from('bar')
+  const bob = new Client()
+  const resolved = await bob.get(url)
+  console.log(resolved.toString())
+})()
 ```
 
 ## API
