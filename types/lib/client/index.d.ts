@@ -37,6 +37,11 @@ declare class Client {
     get key(): any;
     get id(): string;
     /**
+     * Base URL of the client instance in the format `slash:<this.id>/?relay=<this._relay>`
+     * @returns {string}
+     */
+    get url(): string;
+    /**
      * @param {string} path
      * @param {Uint8Array} content
      * @param {object} [opts]

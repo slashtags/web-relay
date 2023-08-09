@@ -56,6 +56,11 @@ Creates a new Client instance.
 - `seeders` An optional relay address, if not specified, data will be stored locally.
 - `storage` An optional storage path.
 
+
+#### `client.url`
+
+The base url of the client including the relay in the query params if it is specified. The url is in the following format: `slash:<client.id>/[?relay=<relay address>]`
+
 #### `await client.createURL(path)`
 
 Create a Slashtags URL for the data stored at that path.
