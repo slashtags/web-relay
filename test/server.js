@@ -1,6 +1,7 @@
 const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
+const path = require('path')
 const EventSource = require('eventsource')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
@@ -406,5 +407,5 @@ test('save deep path (path/to/file)', async (t) => {
 })
 
 function tmpdir () {
-  return os.tmpdir() + Math.random().toString(16).slice(2)
+  return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }

@@ -1,6 +1,7 @@
 const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
+const path = require('path')
 
 const Client = require('../lib/client/index.js')
 const Relay = require('../index.js')
@@ -215,6 +216,36 @@ test('encrypt', async (t) => {
   relay.close()
 })
 
+test('edge cases - non-uri-safe characters in the entry path', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const a = new Client({ storage: tmpdir(), relay: address })
+
+  const NAME = '/Bitcoin Price Feed/feed/BTCUSD-latest'
+
+  const value = b4a.from('bar')
+  await a.put(NAME, value)
+
+  t.alike(await a.get(NAME), value)
+
+  const url = await a.createURL(NAME)
+
+  const b = new Client({ storage: tmpdir() })
+
+  t.alike(await b.get(url), value)
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // Wwait for the server to get the new update
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // First request will trigger this._getFromRelay, but immediatly return the cached value
+  t.alike(await b.get(url), value)
+
+  relay.close()
+})
+
 function tmpdir () {
-  return os.tmpdir() + Math.random().toString(16).slice(2)
+  return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
