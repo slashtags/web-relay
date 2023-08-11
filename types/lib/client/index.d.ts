@@ -167,7 +167,7 @@ declare class Client {
     _decrypt(content: Uint8Array, encryptionKey: Uint8Array): Promise<Uint8Array | Buffer>;
 }
 declare namespace Client {
-    export { KeyPair, JSONObject };
+    export { Client, KeyPair, JSONObject };
 }
 import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");

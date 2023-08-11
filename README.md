@@ -13,7 +13,7 @@ npm install @synonymdev/web-relay
 ### Relay
 
 ```js
-const Relay = require('@synonymdev/web-relay')
+const { Relay } = require('@synonymdev/web-relay')
 const path = require('path')
 
 const relay = new Relay(path.join(__dirname, './storage/'))
@@ -26,7 +26,7 @@ relay.listen(3000).then(() => {
 ### client 
 
 ```js
-const Client = require('@synonymdev/web-relay/client')
+const { Client } = require('@synonymdev/web-relay/client')
 
 const alice = new Client({relay: 'http://localhost:3000'})
 

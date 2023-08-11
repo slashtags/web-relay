@@ -3,8 +3,7 @@ const b4a = require('b4a')
 const os = require('os')
 const path = require('path')
 
-const Client = require('../lib/client/index.js')
-const Relay = require('../index.js')
+const { Client, Relay } = require('../index.js')
 const { createKeyPair } = require('../lib/utils.js')
 
 const ZERO_SEED = b4a.alloc(32).fill(0)

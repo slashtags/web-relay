@@ -1,4 +1,4 @@
-const Client = require("@synonymdev/web-relay/client")
+const { Client } = require("@synonymdev/web-relay")
 const b4a = require("b4a")
 const path = require("path")
 

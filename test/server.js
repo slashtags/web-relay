@@ -7,7 +7,7 @@ const EventSource = require('eventsource')
 // @ts-ignore
 const fetch = require('node-fetch')
 
-const Relay = require('../index.js')
+const { Relay } = require('../index.js')
 const Record = require('../lib/record.js')
 const { createKeyPair } = require('../lib/utils.js')
 const { HEADERS_NAMES, HEADERS } = require('../lib/constants.js')

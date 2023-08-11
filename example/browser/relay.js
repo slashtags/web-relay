@@ -1,4 +1,4 @@
-const Relay = require('@synonymdev/web-relay')
+const { Relay } = require('@synonymdev/web-relay')
 const path = require('path')
 
 const relay = new Relay(path.join(__dirname, './storage/'))

@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "clean": "rm -rf node_modules package-lock.json .parcel-cache/ dist",
     "relay": "node relay.js",
     "feed": "node feed.js",
     "start": "parcel index.html"
