@@ -2,7 +2,7 @@ const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
 const path = require('path')
-const EventSource = require('eventsource')
+const EventSource = require('../lib/client/eventsource.js')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
 const fetch = require('node-fetch')
@@ -335,12 +335,7 @@ test('subscribe', async (t) => {
   }
 
   const url = address + '/subscribe/' + ZERO_ID + '/test.txt'
-  const eventsource = new EventSource(url, {
-    headers: {
-      // Inform the relay about the last record we have
-      // [HEADERS.RECORD]: a.serialize('base64')
-    }
-  })
+  const eventsource = new EventSource(url)
 
   const contentC = b4a.from('ccccc')
   const c = await Record.create(keyPair, ZERO_ID + '/test.txt', contentC)
@@ -350,13 +345,13 @@ test('subscribe', async (t) => {
 
   let count = 0
 
-  eventsource.on('message', ({ data }) => {
+  eventsource.onmessage = ({ data }) => {
     if (count++ === 0) {
       te.is(data, b.serialize('base64'), 'immediatly sent more recent record')
     } else {
       te.is(data, c.serialize('base64'), 'sent live new record')
     }
-  })
+  }
 
   {
     const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
