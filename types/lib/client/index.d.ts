@@ -154,7 +154,7 @@ declare class Client {
      *
      * @param {string} path
      */
-    _generateEncryptionKey(path: string): Promise<Uint8Array>;
+    _generateEncryptionKey(path: string): Promise<Buffer>;
     /**
      * @param {string} path
      * @param {Uint8Array} content

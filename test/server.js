@@ -80,7 +80,7 @@ test('basic - put & get', async (t) => {
     t.is(response.status, 200)
     t.is(response.statusText, 'OK')
 
-    t.is(response.headers.get(HEADERS.RECORD), 'Xi6Eq9v+kx7gCrJ3le+4ijpaMrGWY4vcPIKF8bCToFhAprFD4RypefA16v5Q+1jUxbGzFkUcvLPOnHgFTQP/CVmxH/Nmn8oRPzL+LUcVzMcwKhQN2g0oJta2ipxjSV+7gJaYAAAAeyJmb28iOiJiYXIifQ==')
+    t.is(response.headers.get(HEADERS.RECORD), 'w4mR1i2Nxf1qiDff84J9F8Qpe/GPZ/vTJODoCTttcAS/UCTB3QO3hfNtWcFIIbd/hA4+B2VnhW5I9mkdEtewCjy6HjzyPIziS34IFx2CP72aSSmq/Z8nUW4waZ06QgJqgJaYAAAAeyJmb28iOiJiYXIifQ==')
 
     let recieved = Buffer.alloc(0)
 

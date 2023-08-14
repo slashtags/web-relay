@@ -32,7 +32,6 @@
   "dependencies": {
     "@synonymdev/slashtags-url": "^1.0.0-alpha.3",
     "b4a": "^1.6.4",
-    "hash-wasm": "^4.9.0",
     "level": "^8.0.0",
     "lmdb": "^2.8.4",
     "node-fetch": "^2.6.12",

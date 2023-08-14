@@ -195,7 +195,7 @@ test('encrypt', async (t) => {
 
   const encryptionKey = await a._generateEncryptionKey('/foo')
 
-  t.is(b4a.toString(encryptionKey, 'hex'), '88aef2be59ab3fef27f064d5e78f1727cec521ec0d775db2e8586b51c86c0e1c')
+  t.is(b4a.toString(encryptionKey, 'hex'), '4e848987ff00910f302506326537a554b0fc8a8425aab49774ba5b1d639e3658')
   t.unlike(await a._generateEncryptionKey('/bar'), encryptionKey, 'unique encryption key for each path')
   t.unlike(await b._generateEncryptionKey('/foo'), encryptionKey, 'unique encryption key for each user')
 
