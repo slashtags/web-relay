@@ -17,19 +17,20 @@ declare class Client {
      * @param {string} [opts.relay]
      * @param {KeyPair} [opts.keyPair]
      * @param {string} [opts.storage]
+     * @param {Store} [opts.store]
      */
     constructor(opts?: {
         relay?: string;
         keyPair?: KeyPair;
         storage?: string;
+        store?: Store;
     });
     _keyPair: {
         publicKey: any;
         secretKey: any;
     };
     _relay: string;
-    /** @type {import('level').Level<string, any>} */
-    _store: import('level').Level<string, any>;
+    _store: Store;
     /** @type {Map<string, ReturnType<setTimeout>>} */
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
     /** @type {Map<string, () => void>} */
@@ -168,6 +169,38 @@ declare class Client {
 }
 declare namespace Client {
     export { Client, KeyPair, JSONObject };
+}
+declare class Store {
+    /**
+     * @param {string} location
+     */
+    constructor(location: string);
+    location: any;
+    /** @type {import('level').Level<string, any>} */
+    _db: import('level').Level<string, any>;
+    /**
+     * @param {import('level').IteratorOptions<string, Uint8Array>} range
+     */
+    iterator(range: import('level').IteratorOptions<string, Uint8Array>): import("level").Iterator<import("level").Level<string, any>, string, Uint8Array>;
+    /**
+     * @param {string} key
+     * @param {Uint8Array} value
+     */
+    put(key: string, value: Uint8Array): Promise<void>;
+    /**
+     * @param {string} key
+     *
+     * @returns {Promise<void>}
+     */
+    del(key: string): Promise<void>;
+    /**
+     * @param {string} key
+     *
+     * @returns {Promise<Uint8Array>}
+     */
+    get(key: string): Promise<Uint8Array>;
+    batch(): import("level").ChainedBatch<import("level").Level<string, any>, string, any>;
+    close(): Promise<void>;
 }
 import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");
