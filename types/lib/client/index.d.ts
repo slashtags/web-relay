@@ -168,7 +168,7 @@ declare class Client {
     _decrypt(content: Uint8Array, encryptionKey: Uint8Array): Promise<Uint8Array | Buffer>;
 }
 declare namespace Client {
-    export { Client, KeyPair, JSONObject };
+    export { Client, Store, KeyPair, JSONObject };
 }
 declare class Store {
     /**
@@ -176,8 +176,9 @@ declare class Store {
      */
     constructor(location: string);
     location: any;
+    get _db(): import("level").Level<string, any>;
     /** @type {import('level').Level<string, any>} */
-    _db: import('level').Level<string, any>;
+    _level: import('level').Level<string, any>;
     /**
      * @param {import('level').IteratorOptions<string, Uint8Array>} range
      */
