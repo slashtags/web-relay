@@ -18,11 +18,11 @@ declare class Record {
      * @param {string | Uint8Array} record
      */
     static deserialize(record: string | Uint8Array): {
-        value: import("./record.js");
-        error: null;
-    } | {
         value: null;
         error: Error;
+    } | {
+        value: import("./record.js");
+        error: null;
     };
     /**
      * @param {object} params
