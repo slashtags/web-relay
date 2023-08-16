@@ -52,6 +52,7 @@ Creates a new Client instance.
 
 `opts` is an object that includes the following:
 
+- `relay` A required url of relay server
 - `keyPair` An optional keyPair `{secretKey: Uint8Array, publicKey: Uint8Array}` to generate local drives. Keys have to be 32 bytes.
 - `seeders` An optional relay address, if not specified, data will be stored locally.
 - `storage` An optional storage path.
