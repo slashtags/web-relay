@@ -22,6 +22,9 @@
     "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js",
     "./lib/client/eventsource.js": "./lib/client/eventsource-browser.js"
   },
+  "react-native": {
+    "./lib/client/eventsource.js": "./lib/client/eventsource.js"
+  },
   "devDependencies": {
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.4",
