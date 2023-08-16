@@ -19,12 +19,14 @@
   ],
   "browser": {
     "./index.js": "./lib/client/index.js",
+    "./lib/client/fetch.js": "./lib/client/fetch-browser.js",
     "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js",
     "./lib/client/eventsource.js": "./lib/client/eventsource-browser.js",
     "./lib/client/xmlhttprequest": "./lib/client/xmlhttprequest-browser.js"
   },
   "react-native": {
     "./index.js": "./lib/client/index.js",
+    "./lib/client/fetch.js": "./lib/client/fetch-browser.js",
     "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js",
     "./lib/client/eventsource.js": "./lib/client/eventsource.js",
     "./lib/client/xmlhttprequest": "./lib/client/xmlhttprequest-browser.js"
