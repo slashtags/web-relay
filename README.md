@@ -65,24 +65,33 @@ The base url of the client including the relay in the query params if it is spec
 
 Create a Slashtags URL for the data stored at that path.
 
-#### `await client.put(path, content, opts)`
+#### `await client.put(path, content, [opts])`
 
 Creates or updates a file. `key` should be a string, and `content` param should be a Uint8Array.
 
 `opts` is an object that includes the following:
 
 - `encrypted` An optional flag, if set to true the client will generate a unique encryptionKey for the file and encrypt the content with it.
+- `awaitRelaySync` An optional flag, if set to true, the returned promise will only resolve after the relay responds with a success code to the PUT request.
 
-#### `await client.del(path)`
+#### `await client.del(path, [opts])`
 
 Delete a file. `key` should be a string.
 
-#### `await client.get(url)`
+`opts` is an object that includes the following:
+
+- `awaitRelaySync` An optional flag, if set to true, the returned promise will only resolve after the relay responds with a success code to the PUT request.
+
+#### `await client.get(url, [opts])`
 
 Reads the data from local cache if it exists, or wait for fetching the data from the relay specified in the url, or the instance's own relay.
 Even if locally cached data exists, the client will reach out to the relay in the background to find new updates.
 
 If the url contains an encryptionKey in the fragment (`#encryptionKey=<z-base32 encoded 32 bytes>`) it will be used to decrypt the content.
+
+`opts` is an object that includes the following:
+
+- `skipCache` An optional flag, if set to true, the returned promise will only resolve after it gets a response from the relay to the GET request, skipping any local cache.
 
 #### `const unsubscribe = coreData.subscribe(url, onupdate)`
 

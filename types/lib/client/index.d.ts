@@ -35,6 +35,7 @@ declare class Client {
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
     /** @type {Map<string, () => void>} */
     _supscriptions: Map<string, () => void>;
+    _sentPending: Promise<void>;
     get key(): any;
     get id(): string;
     /**
@@ -47,24 +48,34 @@ declare class Client {
      * @param {Uint8Array} content
      * @param {object} [opts]
      * @param {boolean} [opts.encrypt]
+     * @param {boolean} [opts.awaitRelaySync]
      *
      * @returns {Promise<void>}
      */
     put(path: string, content: Uint8Array, opts?: {
         encrypt?: boolean;
+        awaitRelaySync?: boolean;
     }): Promise<void>;
     /**
      * @param {string} path
+     * @param {object} [opts]
+     * @param {boolean} [opts.awaitRelaySync]
      *
      * @returns {Promise<void>}
      */
-    del(path: string, opts?: {}): Promise<void>;
+    del(path: string, opts?: {
+        awaitRelaySync?: boolean;
+    }): Promise<void>;
     /**
      * @param {string} path
+     * @param {object} [opts]
+     * @param {boolean} [opts.skipCache]
      *
      * @returns {Promise<Uint8Array | null>}
      */
-    get(path: string): Promise<Uint8Array | null>;
+    get(path: string, opts?: {
+        skipCache?: boolean;
+    }): Promise<Uint8Array | null>;
     /**
      * @param {string} path
      * @param {(value: Uint8Array | null) => any} onupdate
@@ -121,8 +132,9 @@ declare class Client {
      * @param {string} path
      * @param {Uint8Array} content
      * @param {Record} record
+     * @param {Function} [onsuccess]
      */
-    _trySendToRelay(path: string, content: Uint8Array, record: Record): Promise<void>;
+    _trySendToRelay(path: string, content: Uint8Array, record: Record, onsuccess?: Function): Promise<void>;
     /**
      * @param {string} path
      */
