@@ -27,7 +27,7 @@ On receiving a PUT request, the server should:
 2. Check the timestamp, and compare it with the timestamp of the saved entry for that path, if it has any, if the incoming timestamp is _not_ the most recent, it should just return a `409 Conflict` response.
 3. Concatenate the path from the request with the record from the step above to get an [Entry](#Entry).
 4. Verify the [Signature](#Signature) over the [Entry](#Entry). The signer should be the public key decoded from the z32 encoded `:userID` part of the path in the request.
-5. If the signature is valid, wait for the content streaming to finish to obtain the Blake3 [`Hash`](#Hash), and verify it is the same recieved in the [Signed Record](#Signed-Record).
+5. If the signature is valid, wait for the content streaming to finish to obtain the Sha256 [`Hash`](#Hash), and verify it is the same recieved in the [Signed Record](#Signed-Record).
 6. If the hash is valid, the server should save the content and the [Signed-Record](#Signed-Record).
 
 #### Response
@@ -92,7 +92,7 @@ A utf-8 encoded path of the entry consisting of `userID` (the public key of the 
 ```
 
 #### `Hash` 
-a 32 bytes of Blake3 hash of the content.
+a 32 bytes of Sha256 hash of the content.
 #### `Timestamp` 
 a 6 bytes of unix timestamp in milliseconds.
 #### `Metadata` 
