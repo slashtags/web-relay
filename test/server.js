@@ -2,7 +2,7 @@ const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
 const path = require('path')
-const EventSource = require('eventsource')
+const EventSource = require('../lib/client/eventsource.js')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
 const fetch = require('node-fetch')
@@ -80,7 +80,7 @@ test('basic - put & get', async (t) => {
     t.is(response.status, 200)
     t.is(response.statusText, 'OK')
 
-    t.is(response.headers.get(HEADERS.RECORD), 'Xi6Eq9v+kx7gCrJ3le+4ijpaMrGWY4vcPIKF8bCToFhAprFD4RypefA16v5Q+1jUxbGzFkUcvLPOnHgFTQP/CVmxH/Nmn8oRPzL+LUcVzMcwKhQN2g0oJta2ipxjSV+7gJaYAAAAeyJmb28iOiJiYXIifQ==')
+    t.is(response.headers.get(HEADERS.RECORD), 'w4mR1i2Nxf1qiDff84J9F8Qpe/GPZ/vTJODoCTttcAS/UCTB3QO3hfNtWcFIIbd/hA4+B2VnhW5I9mkdEtewCjy6HjzyPIziS34IFx2CP72aSSmq/Z8nUW4waZ06QgJqgJaYAAAAeyJmb28iOiJiYXIifQ==')
 
     let recieved = Buffer.alloc(0)
 
@@ -335,12 +335,7 @@ test('subscribe', async (t) => {
   }
 
   const url = address + '/subscribe/' + ZERO_ID + '/test.txt'
-  const eventsource = new EventSource(url, {
-    headers: {
-      // Inform the relay about the last record we have
-      // [HEADERS.RECORD]: a.serialize('base64')
-    }
-  })
+  const eventsource = new EventSource(url)
 
   const contentC = b4a.from('ccccc')
   const c = await Record.create(keyPair, ZERO_ID + '/test.txt', contentC)
@@ -350,13 +345,13 @@ test('subscribe', async (t) => {
 
   let count = 0
 
-  eventsource.on('message', ({ data }) => {
+  eventsource.onmessage = ({ data }) => {
     if (count++ === 0) {
       te.is(data, b.serialize('base64'), 'immediatly sent more recent record')
     } else {
       te.is(data, c.serialize('base64'), 'sent live new record')
     }
-  })
+  }
 
   {
     const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {

@@ -34,23 +34,15 @@ test('relay: put - get', async (t) => {
 
   t.alike(await b.get(url), value)
 
-  await new Promise(resolve => setTimeout(resolve, 100))
-
   const updated = b4a.from('baz')
-  await a.put('foo', updated)
+
+  // Wait for the relay to confirm it got the updated data.
+  await a.put('foo', updated, { awaitRelaySync: true })
 
   t.alike(await a.get(url), updated)
 
-  // Wwait for the server to get the new update
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // First request will trigger this._getFromRelay, but immediatly return the cached value
-  t.alike(await b.get(url), value)
-
-  // Wait till the relay responds with updated data
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  t.alike(await b.get(url), updated)
+  // Skip the cachec to reach for the latest data on the relay
+  t.alike(await b.get(url, { skipCache: true }), updated)
 
   const pending = []
 
@@ -111,8 +103,7 @@ test('send pending to relay after initialization', async (t) => {
     const a = new Client({ storage, keyPair, relay: address })
     url = await a.createURL('foo')
 
-    // Wait for relay to receive the pending writes
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await a._sentPending
   }
 
   const b = new Client({ storage: tmpdir() })
@@ -152,9 +143,7 @@ test('subscribe', async (t) => {
     }
   })
 
-  await a.put('foo', first)
-
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await a.put('foo', first, { awaitRelaySync: true })
 
   // Subscribe closes eventsource
   unsbuscribe()
@@ -195,12 +184,12 @@ test('encrypt', async (t) => {
 
   const encryptionKey = await a._generateEncryptionKey('/foo')
 
-  t.is(b4a.toString(encryptionKey, 'hex'), '88aef2be59ab3fef27f064d5e78f1727cec521ec0d775db2e8586b51c86c0e1c')
+  t.is(b4a.toString(encryptionKey, 'hex'), '4e848987ff00910f302506326537a554b0fc8a8425aab49774ba5b1d639e3658')
   t.unlike(await a._generateEncryptionKey('/bar'), encryptionKey, 'unique encryption key for each path')
   t.unlike(await b._generateEncryptionKey('/foo'), encryptionKey, 'unique encryption key for each user')
 
   const value = b4a.from('bar')
-  await a.put('foo', value, { encrypt: true })
+  await a.put('foo', value, { encrypt: true, awaitRelaySync: true })
 
   t.alike(await a.get('foo'), value, 'read locally encrypted file (at rest) without providing any key')
 
@@ -208,8 +197,14 @@ test('encrypt', async (t) => {
 
   t.alike(await b.get(url), value, 'get remote encrypted file (e2e)')
 
-  const fromSubscribe = await new Promise((resolve) => b.subscribe(url, resolve))
-  t.alike(fromSubscribe, value)
+  const ts = t.test('subscribe')
+  ts.plan(1)
+
+  b.subscribe(url, (fromSubscribe) => {
+    ts.alike(fromSubscribe, value)
+  })
+
+  await ts
 
   b.close()
   relay.close()
@@ -232,14 +227,6 @@ test('edge cases - non-uri-safe characters in the entry path', async (t) => {
 
   const b = new Client({ storage: tmpdir() })
 
-  t.alike(await b.get(url), value)
-
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Wwait for the server to get the new update
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // First request will trigger this._getFromRelay, but immediatly return the cached value
   t.alike(await b.get(url), value)
 
   relay.close()

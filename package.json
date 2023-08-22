@@ -6,7 +6,7 @@
   "scripts": {
     "test": "brittle test/* -cov",
     "lint": "standard --fix --ignore example/*",
-    "build": "tsc",
+    "build": "rm -rf types && tsc",
     "fullcheck": "npm run lint && npm run build && npm run test",
     "prepublishOnly": "npm run fullcheck"
   },
@@ -19,7 +19,17 @@
   ],
   "browser": {
     "./index.js": "./lib/client/index.js",
-    "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js"
+    "./lib/client/fetch.js": "./lib/client/fetch-browser.js",
+    "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js",
+    "./lib/client/eventsource.js": "./lib/client/eventsource-browser.js",
+    "./lib/client/xmlhttprequest": "./lib/client/xmlhttprequest-browser.js"
+  },
+  "react-native": {
+    "./index.js": "./lib/client/index.js",
+    "./lib/client/fetch.js": "./lib/client/fetch-browser.js",
+    "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js",
+    "./lib/client/eventsource.js": "./lib/client/eventsource.js",
+    "./lib/client/xmlhttprequest": "./lib/client/xmlhttprequest-browser.js"
   },
   "devDependencies": {
     "@types/node": "^18.16.0",
@@ -31,11 +41,10 @@
   "dependencies": {
     "@synonymdev/slashtags-url": "^1.0.0-alpha.3",
     "b4a": "^1.6.4",
-    "eventsource": "^2.0.2",
-    "hash-wasm": "^4.9.0",
     "level": "^8.0.0",
     "lmdb": "^2.8.4",
     "node-fetch": "^2.6.12",
-    "sodium-universal": "^4.0.0"
+    "sodium-universal": "^4.0.0",
+    "xmlhttprequest": "^1.8.0"
   }
 }

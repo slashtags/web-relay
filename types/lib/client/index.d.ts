@@ -17,23 +17,25 @@ declare class Client {
      * @param {string} [opts.relay]
      * @param {KeyPair} [opts.keyPair]
      * @param {string} [opts.storage]
+     * @param {Store} [opts.store]
      */
     constructor(opts?: {
         relay?: string;
         keyPair?: KeyPair;
         storage?: string;
+        store?: Store;
     });
     _keyPair: {
         publicKey: any;
         secretKey: any;
     };
     _relay: string;
-    /** @type {import('level').Level<string, any>} */
-    _store: import('level').Level<string, any>;
+    _store: Store;
     /** @type {Map<string, ReturnType<setTimeout>>} */
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
     /** @type {Map<string, () => void>} */
     _supscriptions: Map<string, () => void>;
+    _sentPending: Promise<void>;
     get key(): any;
     get id(): string;
     /**
@@ -46,24 +48,34 @@ declare class Client {
      * @param {Uint8Array} content
      * @param {object} [opts]
      * @param {boolean} [opts.encrypt]
+     * @param {boolean} [opts.awaitRelaySync]
      *
      * @returns {Promise<void>}
      */
     put(path: string, content: Uint8Array, opts?: {
         encrypt?: boolean;
+        awaitRelaySync?: boolean;
     }): Promise<void>;
     /**
      * @param {string} path
+     * @param {object} [opts]
+     * @param {boolean} [opts.awaitRelaySync]
      *
      * @returns {Promise<void>}
      */
-    del(path: string, opts?: {}): Promise<void>;
+    del(path: string, opts?: {
+        awaitRelaySync?: boolean;
+    }): Promise<void>;
     /**
      * @param {string} path
+     * @param {object} [opts]
+     * @param {boolean} [opts.skipCache]
      *
      * @returns {Promise<Uint8Array | null>}
      */
-    get(path: string): Promise<Uint8Array | null>;
+    get(path: string, opts?: {
+        skipCache?: boolean;
+    }): Promise<Uint8Array | null>;
     /**
      * @param {string} path
      * @param {(value: Uint8Array | null) => any} onupdate
@@ -120,8 +132,9 @@ declare class Client {
      * @param {string} path
      * @param {Uint8Array} content
      * @param {Record} record
+     * @param {Function} [onsuccess]
      */
-    _trySendToRelay(path: string, content: Uint8Array, record: Record): Promise<void>;
+    _trySendToRelay(path: string, content: Uint8Array, record: Record, onsuccess?: Function): Promise<void>;
     /**
      * @param {string} path
      */
@@ -154,7 +167,7 @@ declare class Client {
      *
      * @param {string} path
      */
-    _generateEncryptionKey(path: string): Promise<Uint8Array>;
+    _generateEncryptionKey(path: string): Promise<Buffer>;
     /**
      * @param {string} path
      * @param {Uint8Array} content
@@ -167,7 +180,40 @@ declare class Client {
     _decrypt(content: Uint8Array, encryptionKey: Uint8Array): Promise<Uint8Array | Buffer>;
 }
 declare namespace Client {
-    export { Client, KeyPair, JSONObject };
+    export { Client, Store, KeyPair, JSONObject };
+}
+declare class Store {
+    /**
+     * @param {string} location
+     */
+    constructor(location: string);
+    location: any;
+    get _db(): import("level").Level<string, any>;
+    /** @type {import('level').Level<string, any>} */
+    _level: import('level').Level<string, any>;
+    /**
+     * @param {import('level').IteratorOptions<string, Uint8Array>} range
+     */
+    iterator(range: import('level').IteratorOptions<string, Uint8Array>): import("level").Iterator<import("level").Level<string, any>, string, Uint8Array>;
+    /**
+     * @param {string} key
+     * @param {Uint8Array} value
+     */
+    put(key: string, value: Uint8Array): Promise<void>;
+    /**
+     * @param {string} key
+     *
+     * @returns {Promise<void>}
+     */
+    del(key: string): Promise<void>;
+    /**
+     * @param {string} key
+     *
+     * @returns {Promise<Uint8Array>}
+     */
+    get(key: string): Promise<Uint8Array>;
+    batch(): import("level").ChainedBatch<import("level").Level<string, any>, string, any>;
+    close(): Promise<void>;
 }
 import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");

@@ -11,7 +11,7 @@ declare class Record {
     static create(keyPair: KeyPair, path: string, content: Uint8Array, opts?: {
         timestamp?: number;
         metadata?: JSONObject;
-    }): Promise<Record>;
+    }): Promise<import("./record.js")>;
     /**
      * Deserialize the saved record to a hash, timestamp and metadata
      *
@@ -21,7 +21,7 @@ declare class Record {
         value: null;
         error: Error;
     } | {
-        value: Record;
+        value: import("./record.js");
         error: null;
     };
     /**
