@@ -37,6 +37,11 @@ declare class Client {
     get key(): any;
     get id(): string;
     /**
+     * Base URL of the client instance in the format `slash:<this.id>/?relay=<this._relay>`
+     * @returns {string}
+     */
+    get url(): string;
+    /**
      * @param {string} path
      * @param {Uint8Array} content
      * @param {object} [opts]
@@ -86,15 +91,24 @@ declare class Client {
      * Returns the relay from a url
      *
      * @param {string} url
-     * @Returns {{relay?:string, encryptionKey?: Uint8Array}}
+     * @returns {Partial<ReturnType<import('@synonymdev/slashtags-url').parse> & {relay?:string, encryptionKey?: Uint8Array}>}
      */
-    _parseURL(url: string): {
-        relay: string;
-        encryptionKey?: undefined;
-    } | {
-        relay: string;
-        encryptionKey: Uint8Array;
-    };
+    _parseURL(url: string): Partial<{
+        protocol: string;
+        key: Uint8Array;
+        id: string;
+        path: string;
+        query: {
+            [k: string]: string | boolean;
+        };
+        fragment: string;
+        privateQuery: {
+            [k: string]: string | boolean;
+        };
+    } & {
+        relay?: string;
+        encryptionKey?: Uint8Array;
+    }>;
     /**
      * Remove the file from pending database
      *
@@ -153,8 +167,9 @@ declare class Client {
     _decrypt(content: Uint8Array, encryptionKey: Uint8Array): Promise<Uint8Array | Buffer>;
 }
 declare namespace Client {
-    export { KeyPair, JSONObject };
+    export { Client, KeyPair, JSONObject };
 }
+import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");
 import { createKeyPair } from "../utils.js";
 type KeyPair = import('../record.js').KeyPair;

@@ -18,6 +18,7 @@
     "!**/*.tsbuildinfo"
   ],
   "browser": {
+    "./index.js": "./lib/client/index.js",
     "./lib/client/default-storage.js": "./lib/client/default-storage-browser.js"
   },
   "devDependencies": {
@@ -33,12 +34,8 @@
     "eventsource": "^2.0.2",
     "hash-wasm": "^4.9.0",
     "level": "^8.0.0",
+    "lmdb": "^2.8.4",
     "node-fetch": "^2.6.12",
     "sodium-universal": "^4.0.0"
-  },
-  "exports": {
-    ".": "./index.js",
-    "./client": "./lib/client/index.js",
-    "./server": "./lib/server/index.js"
   }
 }

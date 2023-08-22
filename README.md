@@ -13,7 +13,7 @@ npm install @synonymdev/web-relay
 ### Relay
 
 ```js
-const Relay = require('@synonymdev/web-relay')
+const { Relay } = require('@synonymdev/web-relay')
 const path = require('path')
 
 const relay = new Relay(path.join(__dirname, './storage/'))
@@ -26,7 +26,7 @@ relay.listen(3000).then(() => {
 ### client 
 
 ```js
-const Client = require('@synonymdev/web-relay/client')
+const { Client } = require('@synonymdev/web-relay/client')
 
 const alice = new Client({relay: 'http://localhost:3000'})
 
@@ -55,6 +55,11 @@ Creates a new Client instance.
 - `keyPair` An optional keyPair `{secretKey: Uint8Array, publicKey: Uint8Array}` to generate local drives. Keys have to be 32 bytes.
 - `seeders` An optional relay address, if not specified, data will be stored locally.
 - `storage` An optional storage path.
+
+
+#### `client.url`
+
+The base url of the client including the relay in the query params if it is specified. The url is in the following format: `slash:<client.id>/[?relay=<relay address>]`
 
 #### `await client.createURL(path)`
 

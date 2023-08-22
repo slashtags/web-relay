@@ -1,12 +1,13 @@
 const test = require('brittle')
 const b4a = require('b4a')
 const os = require('os')
+const path = require('path')
 const EventSource = require('eventsource')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
 const fetch = require('node-fetch')
 
-const Relay = require('../index.js')
+const { Relay } = require('../index.js')
 const Record = require('../lib/record.js')
 const { createKeyPair } = require('../lib/utils.js')
 const { HEADERS_NAMES, HEADERS } = require('../lib/constants.js')
@@ -376,6 +377,35 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
+test('save deep path (path/to/file)', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const record = await Record.create(keyPair, ZERO_ID + '/path/to/file', content)
+
+  const headers = {
+    [HEADERS.RECORD]: record.serialize('base64'),
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  const response = await fetch(address + '/' + ZERO_ID + '/path/to/file', {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  t.is(response.status, 200)
+  t.is(response.statusText, 'OK')
+
+  relay.close()
+})
+
 function tmpdir () {
-  return os.tmpdir() + Math.random().toString(16).slice(2)
+  return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
