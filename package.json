@@ -7,7 +7,7 @@
     "test": "brittle test/* -cov",
     "lint": "standard --fix --ignore example/*",
     "build": "rm -rf types && tsc",
-    "fullcheck": "npm run lint && npm run build && npm run test",
+    "fullcheck": "npm run lint && npm shrinkwrap && npm run build && npm run test",
     "prepublishOnly": "npm run fullcheck"
   },
   "license": "MIT",
