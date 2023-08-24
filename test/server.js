@@ -406,7 +406,7 @@ test('health check endpoint', async (t) => {
   const address = await relay.listen()
 
   // Make a GET request to the health check endpoint
-  const response = await fetch(address + '/health-check')
+  const response = await fetch(address + '/health-check?format=json')
 
   // Check the response status
   t.is(response.status, 200, 'Should return 200 OK status')
@@ -418,11 +418,10 @@ test('health check endpoint', async (t) => {
   t.ok(responseBody.status, 'Should have a status field')
   t.ok(responseBody.uptime, 'Should have an uptime field')
   t.ok(responseBody.serverTime, 'Should have a serverTime field')
-  t.ok(responseBody.loadAverage, 'Should have a loadAverage field')
   t.ok(responseBody.memoryUsage, 'Should have a memoryUsage field')
 
   relay.close()
-});
+})
 
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))

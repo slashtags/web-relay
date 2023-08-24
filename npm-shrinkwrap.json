@@ -11,6 +11,7 @@
       "dependencies": {
         "@synonymdev/slashtags-url": "1.0.0-alpha.3",
         "b4a": "1.6.4",
+        "git-repo-info": "^2.1.1",
         "level": "8.0.0",
         "lmdb": "2.8.4",
         "node-fetch": "2.6.12",
@@ -1923,6 +1924,14 @@
       },
       "funding": {
         "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/git-repo-info": {
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/git-repo-info/-/git-repo-info-2.1.1.tgz",
+      "integrity": "sha512-8aCohiDo4jwjOwma4FmYFd3i97urZulL8XL24nIPxuE+GZnfsAyy/g2Shqx6OjUiFKUXZM+Yy+KHnOmmA3FVcg==",
+      "engines": {
+        "node": ">= 4.0"
       }
     },
     "node_modules/glob": {
