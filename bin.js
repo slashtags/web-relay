@@ -6,7 +6,7 @@ const config = getConfig()
 
 const relay = new Relay(path.join(__dirname, config.storage))
 
-relay.listen(3000).then(() => {
+relay.listen(config.port).then(() => {
   console.log('Web Relay listening on port ' + relay.port)
 })
 

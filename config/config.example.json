@@ -1,3 +1,4 @@
 {
-  "storage": "./web-relay-storage/"
+  "storage": "./web-relay-storage/",
+  "port": 8080
 }
