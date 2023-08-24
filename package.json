@@ -7,7 +7,7 @@
     "test": "brittle test/* -cov",
     "lint": "standard --fix --ignore example/*",
     "build": "rm -rf types && tsc",
-    "fullcheck": "npm run lint && npm run build && npm run test",
+    "fullcheck": "npm run lint && npm shrinkwrap && npm run build && npm run test",
     "prepublishOnly": "npm run fullcheck"
   },
   "license": "MIT",
@@ -32,19 +32,19 @@
     "./lib/client/xmlhttprequest": "./lib/client/xmlhttprequest-browser.js"
   },
   "devDependencies": {
-    "@types/node": "^18.16.0",
-    "@types/node-fetch": "^2.6.4",
-    "brittle": "^3.2.1",
-    "standard": "^17.0.0",
-    "typescript": "^5.0.4"
+    "@types/node": "18.16.0",
+    "@types/node-fetch": "2.6.4",
+    "brittle": "3.2.1",
+    "standard": "17.0.0",
+    "typescript": "5.0.4"
   },
   "dependencies": {
-    "@synonymdev/slashtags-url": "^1.0.0-alpha.3",
-    "b4a": "^1.6.4",
-    "level": "^8.0.0",
-    "lmdb": "^2.8.4",
-    "node-fetch": "^2.6.12",
-    "sodium-universal": "^4.0.0",
-    "xmlhttprequest": "^1.8.0"
+    "@synonymdev/slashtags-url": "1.0.0-alpha.3",
+    "b4a": "1.6.4",
+    "level": "8.0.0",
+    "lmdb": "2.8.4",
+    "node-fetch": "2.6.12",
+    "sodium-universal": "4.0.0",
+    "xmlhttprequest": "1.8.0"
   }
 }
