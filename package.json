@@ -8,6 +8,7 @@
     "lint": "standard --fix --ignore example/*",
     "build": "rm -rf types && tsc",
     "fullcheck": "npm run lint && npm shrinkwrap && npm run build && npm run test",
+    "web-relay": "node example/browser/relay.js",
     "prepublishOnly": "npm run fullcheck"
   },
   "license": "MIT",
