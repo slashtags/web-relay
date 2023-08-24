@@ -7,3 +7,8 @@ types/**/*.tsbuildinfo
 example/browser/storage/*
 example/browser/.parcel-cache
 example/browser/dist
+
+config/*
+!config/config.example.json
+
+web-relay-storage
