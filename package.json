@@ -4,6 +4,7 @@
   "main": "index.js",
   "types": "types/index.d.ts",
   "scripts": {
+    "start": "node ./bin.js",
     "test": "brittle test/* -cov",
     "lint": "standard --fix --ignore example/*",
     "build": "rm -rf types && tsc",

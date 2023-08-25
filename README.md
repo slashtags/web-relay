@@ -12,18 +12,16 @@ npm install @synonymdev/web-relay
 
 ## 🚀 Getting Started
 
-### 1. Setting up the Relay
+### 1. Running the Relay
 
-```js
-const { Relay } = require("@synonymdev/web-relay");
-const path = require("path");
+Copy and customize the configuration file.
 
-const relay = new Relay(path.join(__dirname, "./storage/"));
-
-relay.listen(3000).then(() => {
-  console.log(`Web Relay is now listening on port ${relay.port}`);
-});
+```bash
+cp config/config.example.json config/config.json
 ```
+
+Run `npm start` or use [pm2](https://pm2.keymetrics.io/) `pm2 start ecosystem.config.json`
+
 
 ### 2. Interacting via the Client
 
