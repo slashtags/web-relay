@@ -59,6 +59,13 @@ declare class Relay {
      * @param {http.ServerResponse} res
      */
     _SUBSCRIBE(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
+    /**
+     * Health check endpoint to provide server metrics.
+     *
+     * @param {http.IncomingMessage} _req
+     * @param {http.ServerResponse} res
+     */
+    _HEALTH_CHECK(_req: http.IncomingMessage, res: http.ServerResponse): void;
 }
 import http = require("http");
 import Record = require("../record.js");

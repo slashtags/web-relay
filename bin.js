@@ -11,16 +11,16 @@ relay.listen(config.port).then(() => {
 })
 
 /**
- * @returns {{storage: string}} 
+ * @returns {{storage: string}}
  */
-function getConfig() {
+function getConfig () {
   const configPath = path.join(__dirname, 'config', 'config.json')
-  let config;
+  let config
   try {
     config = fs.readFileSync(configPath, 'utf8')
   } catch (error) {
-    if (error.message.startsWith("ENOENT")) {
-      throw new Error("Missing config file.")
+    if (error.message.startsWith('ENOENT')) {
+      throw new Error('Missing config file.')
     }
     throw error
   }
@@ -28,6 +28,6 @@ function getConfig() {
   try {
     return JSON.parse(config)
   } catch (error) {
-    throw new Error("Invalid config file.")
+    throw new Error('Invalid config file.')
   }
 }

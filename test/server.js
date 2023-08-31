@@ -422,7 +422,7 @@ test('health check endpoint', async (t) => {
   t.ok(responseBody.memoryUsage, 'Should have a memoryUsage field')
 
   relay.close()
-});
+})
 
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
