@@ -23,6 +23,7 @@ declare class Relay {
      * @param {number} [port]
      */
     listen(port?: number): Promise<any>;
+    _startTime: number;
     /**
      * Close the web relay
      */
@@ -59,6 +60,13 @@ declare class Relay {
      * @param {http.ServerResponse} res
      */
     _SUBSCRIBE(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
+    /**
+     * Health check endpoint to provide server metrics.
+     *
+     * @param {http.IncomingMessage} req
+     * @param {http.ServerResponse} res
+     */
+    _HEALTH_CHECK(req: http.IncomingMessage, res: http.ServerResponse): void;
 }
 import http = require("http");
 import Record = require("../record.js");
