@@ -22,7 +22,22 @@ cp config/config.example.json config/config.json
 
 Run `npm start` or use [pm2](https://pm2.keymetrics.io/) `pm2 start ecosystem.config.json`
 
+Setup proxy:
 
+Web-relay uses [Server-sent Events](https://html.spec.whatwg.org/#server-sent-events) to subscribe for updates, which needs HTTP/2 to work best (especially in browsers).
+
+If you are using Nginx, consider using the following configuration:
+
+```
+  location <path here> {
+    proxy_pass <relay host:port here>;
+    proxy_http_version 1.1;
+    proxy_set_header Connection '';
+    chunked_transfer_encoding off;
+    proxy_buffering off;
+    proxy_cache off;
+  }
+```
 ### 2. Interacting via the Client
 
 ```js
