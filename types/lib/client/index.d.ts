@@ -37,7 +37,7 @@ declare class Client {
     _supscriptions: Map<string, () => void>;
     _sentPending: Promise<void>;
     get key(): any;
-    get id(): string;
+    get id(): any;
     /**
      * Base URL of the client instance in the format `slash:<this.id>/?relay=<this._relay>`
      * @returns {string}
@@ -107,8 +107,8 @@ declare class Client {
      */
     _parseURL(url: string): Partial<{
         protocol: string;
-        key: Uint8Array;
-        id: string;
+        key: any;
+        id: any;
         path: string;
         query: {
             [k: string]: string | boolean;
