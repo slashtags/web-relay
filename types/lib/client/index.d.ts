@@ -37,7 +37,7 @@ declare class Client {
     _supscriptions: Map<string, () => void>;
     _sentPending: Promise<void>;
     get key(): any;
-    get id(): string;
+    get id(): any;
     /**
      * Base URL of the client instance in the format `slash:<this.id>/?relay=<this._relay>`
      * @returns {string}
@@ -67,9 +67,13 @@ declare class Client {
         awaitRelaySync?: boolean;
     }): Promise<void>;
     /**
+     * Get the content of an entry from the local cache immediatly if available,
+     * otherwise wait for fetching from the remote relay.
+     * To skip the local cache and wait for the remote relay response anyways use the `opts.skipCache` option.
+     *
      * @param {string} path
      * @param {object} [opts]
-     * @param {boolean} [opts.skipCache]
+     * @param {boolean} [opts.skipCache] - Skip the local cache and wait for the remote relay to respond with fresh data
      *
      * @returns {Promise<Uint8Array | null>}
      */
@@ -107,8 +111,8 @@ declare class Client {
      */
     _parseURL(url: string): Partial<{
         protocol: string;
-        key: Uint8Array;
-        id: string;
+        key: any;
+        id: any;
         path: string;
         query: {
             [k: string]: string | boolean;
