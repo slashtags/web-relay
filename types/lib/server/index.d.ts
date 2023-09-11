@@ -3,9 +3,14 @@ export = Relay;
 declare class Relay {
     /**
      * @param {string} [storage] - storage directory
+     * @param {object} [options]
+     * @param {number} [options.maxContentSize]
      */
-    constructor(storage?: string);
+    constructor(storage?: string, options?: {
+        maxContentSize?: number;
+    });
     _server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
+    _maxContentSize: number;
     _storageDir: string;
     _recordsDir: string;
     _contentDir: string;

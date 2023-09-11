@@ -423,6 +423,37 @@ test('health check endpoint', async (t) => {
   relay.close()
 })
 
+test('content too large', async (t) => {
+  const relay = new Relay(tmpdir(), { maxContentSize: 10 })
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice Bob Carl'
+  }))
+
+  const record = await Record.create(keyPair, ZERO_ID + '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+
+  const headers = {
+    [HEADERS.RECORD]: record.serialize('base64'),
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  const response = await fetch(address + '/' + ZERO_ID + '/test.txt', {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  t.is(response.status, 413)
+  t.is(response.statusText, 'Content too large')
+
+  relay.close()
+})
+
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }

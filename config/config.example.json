@@ -1,4 +1,5 @@
 {
   "storage": "./web-relay-storage/",
-  "port": 8080
+  "port": 8080,
+  "maxContentSize": 16384
 }
