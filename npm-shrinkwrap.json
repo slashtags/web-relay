@@ -9,7 +9,7 @@
       "version": "1.0.0",
       "license": "MIT",
       "dependencies": {
-        "@synonymdev/slashtags-url": "^1.0.0-alpha.4",
+        "@synonymdev/slashtags-url": "^1.0.0",
         "b4a": "1.6.4",
         "git-repo-info": "^2.1.1",
         "level": "8.0.0",
@@ -388,9 +388,9 @@
       }
     },
     "node_modules/@synonymdev/slashtags-url": {
-      "version": "1.0.0-alpha.4",
-      "resolved": "https://registry.npmjs.org/@synonymdev/slashtags-url/-/slashtags-url-1.0.0-alpha.4.tgz",
-      "integrity": "sha512-6+ac8h2MqF0H+h4km4dqmyhomvDvyXB7ny1QsvwwwPNPmyVbSyatjsnGLmEkzpNTVO7PHVCkEbDWGrZmdUVksQ==",
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/@synonymdev/slashtags-url/-/slashtags-url-1.0.0.tgz",
+      "integrity": "sha512-mXPqOodXeLUr/257FBbLB8HSdYk+4bPIQqmpq7NsKzrCZscngaE6mtPtUdB0IZG4LlPXtfyJ93NZMfdVTRQrew==",
       "dependencies": {
         "b4a": "^1.6.0",
         "z32": "^1.0.0"

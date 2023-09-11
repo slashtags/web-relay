@@ -41,7 +41,7 @@
     "typescript": "5.0.4"
   },
   "dependencies": {
-    "@synonymdev/slashtags-url": "^1.0.0-alpha.4",
+    "@synonymdev/slashtags-url": "^1.0.0",
     "b4a": "1.6.4",
     "git-repo-info": "^2.1.1",
     "level": "8.0.0",
