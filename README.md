@@ -122,7 +122,7 @@ await client.del("/examplePath", deleteOptions);
 
 ```js
 const getOptions = {
-  skipCache: true,
+  skipCache: false, // Set to `true` to Skip the local cache and wait for the remote relay to respond with fresh data.
 };
 const data = await client.get(myURL, getOptions);
 console.log(data); // Outputs: Retrieved data
