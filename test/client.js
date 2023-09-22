@@ -232,6 +232,31 @@ test('edge cases - non-uri-safe characters in the entry path', async (t) => {
   relay.close()
 })
 
+test('global skipCache', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const a = new Client({ storage: tmpdir(), relay: address })
+
+  const value = b4a.from('bar')
+  await a.put('foo', value)
+
+  const url = await a.createURL('foo')
+
+  const b = new Client({ storage: tmpdir(), _skipCache: true })
+
+  t.alike(await b.get(url), value)
+
+  const updated = b4a.from('baz')
+
+  // Wait for the relay to confirm it got the updated data.
+  await a.put('foo', updated, { awaitRelaySync: true })
+
+  t.alike(await b.get(url), updated)
+
+  relay.close()
+})
+
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
