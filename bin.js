@@ -4,7 +4,10 @@ const fs = require('fs')
 
 const config = getConfig()
 
-const relay = new Relay(path.join(__dirname, config.storage))
+const relay = new Relay(
+  path.join(__dirname, config.storage),
+  { maxContentSize: config.maxContentSize }
+)
 
 relay.listen(config.port).then(() => {
   console.log('Web Relay listening on port ' + relay.port)
