@@ -18,15 +18,18 @@ declare class Client {
      * @param {KeyPair} [opts.keyPair]
      * @param {string} [opts.storage]
      * @param {Store} [opts.store]
-     * @param {Store} [opts._skipRecordVerification] - Set to true to skip expensive records verification and trust relays.
+     * @param {boolean} [opts._skipRecordVerification] - Set to true to skip expensive records verification and trust relays.
+     * @param {boolean} [opts._skipCache] - Skip cache for remote get request and always await for the relay.
      */
     constructor(opts?: {
         relay?: string;
         keyPair?: KeyPair;
         storage?: string;
         store?: Store;
-        _skipRecordVerification?: Store;
+        _skipRecordVerification?: boolean;
+        _skipCache?: boolean;
     });
+    _skipCache: boolean;
     _keyPair: {
         publicKey: any;
         secretKey: any;
@@ -37,7 +40,7 @@ declare class Client {
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
     /** @type {Map<string, () => void>} */
     _supscriptions: Map<string, () => void>;
-    _skipRecordVerification: Store;
+    _skipRecordVerification: boolean;
     _sentPending: Promise<void>;
     get key(): any;
     get id(): string;
