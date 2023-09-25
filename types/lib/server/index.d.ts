@@ -1,13 +1,17 @@
 /// <reference types="node" />
 export = Relay;
 declare class Relay {
+    static SERVER_SIDE_RECORDS_METADATA: string;
     /**
      * @param {string} [storage] - storage directory
      * @param {object} [options]
      * @param {number} [options.maxContentSize]
+     *
+     * @param {number} [options._writeInterval] - for testing only
      */
     constructor(storage?: string, options?: {
         maxContentSize?: number;
+        _writeInterval?: number;
     });
     _server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     _maxContentSize: number;
@@ -18,6 +22,14 @@ declare class Relay {
     _recordsDB: import('lmdb').RootDatabase<Uint8Array>;
     /** @type {Map<string, Set<(record: Record) => void>>} */
     _subscriptions: Map<string, Set<(record: Record) => void>>;
+    /**
+     * A queue of writes to be processed every WRITE_QUEUE_INTERVAL
+     * currently only used for updating records' lastQueried time
+     * @type {Array<() => void>}
+     */
+    _writeQueue: (() => void)[];
+    _writeQueueInterval: NodeJS.Timer;
+    _processWriteQueue(): void;
     /**
      * The port the relay is listening on
      */
@@ -55,6 +67,19 @@ declare class Relay {
      * @param {http.ServerResponse} res
      */
     _PUT(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
+    /**
+     * Update the date of the last time a record was queried, either by a GET, PUT or SUBSCRIBE request.
+     *
+     * Queues writes to the database on intervals, otherwise every read would involve a write as well,
+     * which is expensive from LMDB.
+     *
+     * @param {string} recordPath
+     */
+    _updateLastQueried(recordPath: string): void;
+    /**
+     * @param {string} recordPath
+     */
+    _serverSideRecordMetadata(recordPath: string): any;
     /**
      * @param {http.IncomingMessage} req
      * @param {http.ServerResponse} res
