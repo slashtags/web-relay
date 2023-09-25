@@ -454,6 +454,54 @@ test('content too large', async (t) => {
   relay.close()
 })
 
+test('save query dates to help prunning abandoned records later', async (t) => {
+  const relay = new Relay(tmpdir(), { _writeInterval: 1 })
+
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice'
+  }))
+
+  const record = await Record.create(keyPair, ZERO_ID + '/test.txt', content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+
+  const headers = {
+    [HEADERS.RECORD]: record.serialize('base64'),
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  // PUT
+  await fetch(address + '/' + ZERO_ID + '/test.txt', {
+    method: 'PUT',
+    headers,
+    body: content
+  })
+
+  await sleep(10)
+
+  const afterPut = relay._serverSideRecordMetadata('/' + ZERO_ID + '/test.txt')
+
+  // GET
+  await fetch(address + '/' + ZERO_ID + '/test.txt')
+
+  await sleep(10)
+
+  const afterGet = relay._serverSideRecordMetadata('/' + ZERO_ID + '/test.txt')
+
+  t.ok(afterPut)
+  t.ok(afterPut)
+  t.ok(afterGet.time > afterPut.time)
+
+  relay.close()
+})
+
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
+}
+
+/** @param {number} ms */
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
