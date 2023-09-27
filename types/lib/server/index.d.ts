@@ -29,6 +29,8 @@ declare class Relay {
      */
     _writeQueue: (() => void)[];
     _writeQueueInterval: NodeJS.Timer;
+    _responseTimeHistogram: Prometheus.Histogram<"method" | "route" | "status">;
+    _requestsCounter: Prometheus.Counter<"method" | "route" | "status">;
     _processWriteQueue(): void;
     /**
      * The port the relay is listening on
@@ -55,6 +57,13 @@ declare class Relay {
      * @param {http.ServerResponse} res
      */
     _handle(req: http.IncomingMessage, res: http.ServerResponse): void;
+    /**
+     * Requests starting with /:userID/ or /subscribe/:userID/
+     *
+     * @param {http.IncomingMessage} req
+     * @param {http.ServerResponse} res
+     */
+    _handleRecordRequests(req: http.IncomingMessage, res: http.ServerResponse): void;
     /**
      * Respond to preflight requests
      *
@@ -97,7 +106,13 @@ declare class Relay {
      * @param {http.ServerResponse} res
      */
     _HEALTH_CHECK(req: http.IncomingMessage, res: http.ServerResponse): void;
+    /**
+     * @param {http.IncomingMessage} req
+     * @param {http.ServerResponse} res
+     */
+    _METRICS(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
 }
 import http = require("http");
 import Record = require("../record.js");
+import Prometheus = require("prom-client");
 //# sourceMappingURL=index.d.ts.map
