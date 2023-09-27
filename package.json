@@ -44,6 +44,7 @@
     "@synonymdev/slashtags-url": "^1.0.0",
     "b4a": "1.6.4",
     "git-repo-info": "^2.1.1",
+    "last-commit-log": "^3.3.0",
     "level": "8.0.0",
     "lmdb": "2.8.4",
     "node-fetch": "2.6.12",
