@@ -47,7 +47,7 @@
     "level": "8.0.0",
     "lmdb": "2.8.4",
     "node-fetch": "2.6.12",
-    "prom-client": "^14.2.0",
+    "prom-client": "14.2.0",
     "sodium-universal": "4.0.0",
     "xmlhttprequest": "1.8.0"
   }
