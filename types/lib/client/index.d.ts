@@ -142,9 +142,10 @@ declare class Client {
      * @param {string} path
      * @param {Uint8Array} content
      * @param {Record} record
-     * @param {Function} [onsuccess]
+     * @param {Function} [resolve]
+     * @param {Function} [reject]
      */
-    _trySendToRelay(path: string, content: Uint8Array, record: Record, onsuccess?: Function, backoff?: number): Promise<void>;
+    _trySendToRelay(path: string, content: Uint8Array, record: Record, resolve?: Function, reject?: Function, backoff?: number): Promise<any>;
     /**
      * @param {string} path
      */

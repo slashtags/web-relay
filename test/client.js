@@ -257,6 +257,25 @@ test('global skipCache', async (t) => {
   relay.close()
 })
 
+test('throw errors on server 4XX response if awaitRelaySync set to true', async (t) => {
+  const relay = new Relay(tmpdir(), { maxContentSize: 10 })
+
+  const address = await relay.listen()
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice Bob Carl'
+  }))
+
+  const client = new Client({ storage: tmpdir(), relay: address })
+  try {
+    await client.put('foo', content, { awaitRelaySync: true })
+  } catch (error) {
+    t.is(error.message, 'Content too large')
+  }
+
+  relay.close()
+})
+
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
