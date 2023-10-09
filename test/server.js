@@ -449,7 +449,7 @@ test('content too large', async (t) => {
   })
 
   t.is(response.status, 413)
-  t.is(response.statusText, 'Content too large')
+  t.is(await response.text(), 'Content too large')
 
   relay.close()
 })
