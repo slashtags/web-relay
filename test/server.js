@@ -3,6 +3,7 @@ const b4a = require('b4a')
 const os = require('os')
 const path = require('path')
 const EventSource = require('../lib/client/eventsource.js')
+const SlashtagsURL = require('@synonymdev/slashtags-url')
 /** @type {import('node-fetch')['default']} */
 // @ts-ignore
 const fetch = require('node-fetch')
@@ -493,6 +494,43 @@ test('save query dates to help prunning abandoned records later', async (t) => {
   t.ok(afterPut)
   t.ok(afterPut)
   t.ok(afterGet.time > afterPut.time)
+
+  relay.close()
+})
+
+test('save query dates to help prunning abandoned records later', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  for (let i = 0; i < 3; i++) {
+    const keyPair = createKeyPair()
+    const content = b4a.from('foo')
+
+    const id = SlashtagsURL.encode(keyPair.publicKey)
+
+    for (let j = 0; j < i + 1; j++) {
+      const path = `${id}/test${j}.txt`
+
+      const record = await Record.create(keyPair, path, content, { timestamp: 10000000, metadata: { foo: 'bar' } })
+
+      const headers = {
+        [HEADERS.RECORD]: record.serialize('base64'),
+        [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+      }
+
+      // PUT
+      await fetch(address + '/' + path, {
+        method: 'PUT',
+        headers,
+        body: content
+      })
+    }
+  }
+
+  await sleep(10)
+
+  t.alike(relay.stats(), { totalRecordsCount: 6 })
 
   relay.close()
 })

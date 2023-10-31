@@ -11,6 +11,8 @@ const relay = new Relay(
 
 relay.listen(config.port).then(() => {
   console.log('Web Relay listening on port ' + relay.port)
+  console.log('\nRelay statistics:')
+  console.log(JSON.stringify(relay.stats(), null, 2))
 })
 
 /**

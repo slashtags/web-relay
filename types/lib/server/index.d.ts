@@ -48,6 +48,12 @@ declare class Relay {
      */
     close(): http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     /**
+     * Returns a general statistics about the relay and its records.
+     */
+    stats(): {
+        totalRecordsCount: number;
+    };
+    /**
      * @param {string} url - /:userID/path/to/record
      * @returns {Promise<Record | null>}
      */
