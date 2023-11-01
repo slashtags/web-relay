@@ -11,6 +11,11 @@ declare class Client {
             message: string;
             cause: string;
         };
+        /** @param {number} maxSize */
+        MAX_SUBSCRIPTIONS: (maxSize: number) => {
+            message: string;
+            cause: string;
+        };
     };
     /**
      * @param {object} [opts]
@@ -18,6 +23,7 @@ declare class Client {
      * @param {KeyPair} [opts.keyPair]
      * @param {string} [opts.storage]
      * @param {Store} [opts.store]
+     * @param {number} [opts.maxSubscriptions] - Maximum number of subscriptions to keep open.
      * @param {boolean} [opts._skipRecordVerification] - Set to true to skip expensive records verification and trust relays.
      * @param {boolean} [opts._skipCache] - Skip cache for remote get request and always await for the relay.
      */
@@ -26,6 +32,7 @@ declare class Client {
         keyPair?: KeyPair;
         storage?: string;
         store?: Store;
+        maxSubscriptions?: number;
         _skipRecordVerification?: boolean;
         _skipCache?: boolean;
     });
@@ -227,11 +234,17 @@ declare class Store {
     close(): Promise<void>;
 }
 declare class Subscriptions {
+    /**
+     * @param {object} opts
+     */
+    constructor(opts?: object);
     /** @type {Map<string, {eventsource: EventSource, callbacks: Set<function>}>} */
     _subscriptions: Map<string, {
         eventsource: EventSource;
         callbacks: Set<Function>;
     }>;
+    /** @type {number} */
+    _maxSize: number;
     /**
      * @param {string} url
      * @param {() => {}} callback
