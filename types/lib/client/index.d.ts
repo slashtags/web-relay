@@ -38,8 +38,8 @@ declare class Client {
     _store: Store;
     /** @type {Map<string, ReturnType<setTimeout>>} */
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
-    /** @type {Map<string, () => void>} */
-    _supscriptions: Map<string, () => void>;
+    /** @type {Subscriptions} */
+    _supscriptions: Subscriptions;
     _skipRecordVerification: boolean;
     _sentPending: Promise<void>;
     get key(): any;
@@ -225,6 +225,24 @@ declare class Store {
     get(key: string): Promise<Uint8Array>;
     batch(): import("level").ChainedBatch<import("level").Level<string, any>, string, any>;
     close(): Promise<void>;
+}
+declare class Subscriptions {
+    /** @type {Map<string, {eventsource: EventSource, callbacks: Set<function>}>} */
+    _subscriptions: Map<string, {
+        eventsource: EventSource;
+        callbacks: Set<Function>;
+    }>;
+    /**
+     * @param {string} url
+     * @param {() => {}} callback
+     */
+    add(url: string, callback: () => {}): void;
+    /**
+     * @param {string} url
+     * @param {() => {}} callback
+     */
+    delete(url: string, callback: () => {}): void;
+    close(): void;
 }
 import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");
