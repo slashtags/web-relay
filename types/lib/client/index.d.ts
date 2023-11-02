@@ -235,26 +235,29 @@ declare class Store {
 }
 declare class Subscriptions {
     /**
-     * @param {object} opts
+     * @param {object} [opts]
+     * @param {number} [opts.maxSubscriptions]
      */
-    constructor(opts?: object);
-    /** @type {Map<string, {eventsource: EventSource, callbacks: Set<function>}>} */
+    constructor(opts?: {
+        maxSubscriptions?: number;
+    });
+    /** @type {Map<string, {eventsource: EventSource, callbacks: Set<() => any>}>} */
     _subscriptions: Map<string, {
         eventsource: EventSource;
-        callbacks: Set<Function>;
+        callbacks: Set<() => any>;
     }>;
     /** @type {number} */
     _maxSize: number;
     /**
      * @param {string} url
-     * @param {() => {}} callback
+     * @param {() => any} callback
      */
-    add(url: string, callback: () => {}): void;
+    add(url: string, callback: () => any): void;
     /**
      * @param {string} url
-     * @param {() => {}} callback
+     * @param {() => any} callback
      */
-    delete(url: string, callback: () => {}): void;
+    delete(url: string, callback: () => any): void;
     close(): void;
 }
 import SlashURL = require("@synonymdev/slashtags-url");
