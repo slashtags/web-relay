@@ -11,6 +11,11 @@ declare class Client {
             message: string;
             cause: string;
         };
+        /** @param {number} maxSize */
+        MAX_SUBSCRIPTIONS: (maxSize: number) => {
+            message: string;
+            cause: string;
+        };
     };
     /**
      * @param {object} [opts]
@@ -18,6 +23,7 @@ declare class Client {
      * @param {KeyPair} [opts.keyPair]
      * @param {string} [opts.storage]
      * @param {Store} [opts.store]
+     * @param {number} [opts.maxSubscriptions] - Maximum number of subscriptions to keep open.
      * @param {boolean} [opts._skipRecordVerification] - Set to true to skip expensive records verification and trust relays.
      * @param {boolean} [opts._skipCache] - Skip cache for remote get request and always await for the relay.
      */
@@ -26,6 +32,7 @@ declare class Client {
         keyPair?: KeyPair;
         storage?: string;
         store?: Store;
+        maxSubscriptions?: number;
         _skipRecordVerification?: boolean;
         _skipCache?: boolean;
     });
@@ -38,8 +45,8 @@ declare class Client {
     _store: Store;
     /** @type {Map<string, ReturnType<setTimeout>>} */
     _retryTimeouts: Map<string, ReturnType<typeof setTimeout>>;
-    /** @type {Map<string, () => void>} */
-    _supscriptions: Map<string, () => void>;
+    /** @type {Subscriptions} */
+    _supscriptions: Subscriptions;
     _skipRecordVerification: boolean;
     _sentPending: Promise<void>;
     get key(): any;
@@ -225,6 +232,33 @@ declare class Store {
     get(key: string): Promise<Uint8Array>;
     batch(): import("level").ChainedBatch<import("level").Level<string, any>, string, any>;
     close(): Promise<void>;
+}
+declare class Subscriptions {
+    /**
+     * @param {object} [opts]
+     * @param {number} [opts.maxSubscriptions]
+     */
+    constructor(opts?: {
+        maxSubscriptions?: number;
+    });
+    /** @type {Map<string, {eventsource: EventSource, callbacks: Set<() => any>}>} */
+    _subscriptions: Map<string, {
+        eventsource: EventSource;
+        callbacks: Set<() => any>;
+    }>;
+    /** @type {number} */
+    _maxSize: number;
+    /**
+     * @param {string} url
+     * @param {() => any} callback
+     */
+    add(url: string, callback: () => any): void;
+    /**
+     * @param {string} url
+     * @param {() => any} callback
+     */
+    delete(url: string, callback: () => any): void;
+    close(): void;
 }
 import SlashURL = require("@synonymdev/slashtags-url");
 import Record = require("../record.js");

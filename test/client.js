@@ -158,6 +158,44 @@ test('subscribe', async (t) => {
   relay.close()
 })
 
+test('subscribe - multiple', async (t) => {
+  const relay = new Relay(tmpdir())
+  const address = await relay.listen()
+
+  const a = new Client({ storage: tmpdir(), relay: address })
+  const b = new Client({ storage: tmpdir(), relay: address })
+
+  const url = await a.createURL('/foo')
+
+  const first = b4a.from('bar')
+
+  const te = t.test('eventsource')
+  te.plan(2)
+
+  const unsbuscribeFirst = b.subscribe(url, () => {
+    te.fail('first should be unsbuscribed')
+  })
+
+  b.subscribe(url, (value) => {
+    te.alike(value, b4a.from('bar'), 'second should be called')
+  })
+
+  b.subscribe(url, (value) => {
+    te.alike(value, b4a.from('bar'), 'second should be called too')
+  })
+
+  unsbuscribeFirst()
+
+  await a.put('foo', first, { awaitRelaySync: true })
+
+  await te
+
+  // Closing the client closes all subscriptions
+  await b.close()
+
+  relay.close()
+})
+
 test('delete', async (t) => {
   const keyPair = createKeyPair(ZERO_SEED)
   const a = new Client({ storage: tmpdir(), keyPair })
