@@ -127,9 +127,9 @@ test('missing header', async (t) => {
 
   const response = await fetch(
     address + '/' + ZERO_ID + '/test.txt', {
-    method: 'PUT',
-    body: 'ffff'
-  })
+      method: 'PUT',
+      body: 'ffff'
+    })
 
   t.is(response.status, 400)
   t.is(response.statusText, `Missing or malformed header: '${HEADERS.RECORD}'`)
@@ -561,12 +561,6 @@ test('query all in a directory', async (t) => {
     await relay._recordsDB.put('/' + GREATER_ID + `/dir/subdir/foo${i}.txt`, bytes)
   }
 
-  // let result = relay._recordsDB.getRange({ start: "/" + ZERO_ID + "/", end: "/" + ZERO_ID + "0" }).asArray.map(({ key, value }) => {
-  //   return { key, value: Record.deserialize(value) }
-  // })
-  //
-  // console.log(result)
-
   const headers = {
     [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
   }
@@ -598,11 +592,11 @@ test('query all in a directory', async (t) => {
   relay.close()
 })
 
-function tmpdir() {
+function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
 
 /** @param {number} ms */
-function sleep(ms) {
+function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
