@@ -127,9 +127,9 @@ test('missing header', async (t) => {
 
   const response = await fetch(
     address + '/' + ZERO_ID + '/test.txt', {
-      method: 'PUT',
-      body: 'ffff'
-    })
+    method: 'PUT',
+    body: 'ffff'
+  })
 
   t.is(response.status, 400)
   t.is(response.statusText, `Missing or malformed header: '${HEADERS.RECORD}'`)
@@ -535,11 +535,74 @@ test('save query dates to help prunning abandoned records later', async (t) => {
   relay.close()
 })
 
-function tmpdir () {
+test('query all in a directory', async (t) => {
+  const relay = new Relay(tmpdir(), { _writeInterval: 1 })
+  const address = await relay.listen()
+
+  const keyPair = createKeyPair(ZERO_SEED)
+
+  const LESSER_ID = '8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewn'
+  const GREATER_ID = '9pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo'
+
+  for (let i = 0; i < 10; i++) {
+    const path = '/' + ZERO_ID + `/dir/subdir/foo${i}.txt`
+    const content = Buffer.from('foo content')
+    const record = await Record.create(keyPair, path, content, { timestamp: 1000 })
+
+    const bytes = record.serialize()
+
+    await relay._recordsDB.put(path, bytes)
+
+    /// False positive subdirectory
+    await relay._recordsDB.put('/' + ZERO_ID + `/dir/wrong/foo${i}.txt`, bytes)
+
+    /// False positive IDs
+    await relay._recordsDB.put('/' + LESSER_ID + `/dir/subdir/foo${i}.txt`, bytes)
+    await relay._recordsDB.put('/' + GREATER_ID + `/dir/subdir/foo${i}.txt`, bytes)
+  }
+
+  // let result = relay._recordsDB.getRange({ start: "/" + ZERO_ID + "/", end: "/" + ZERO_ID + "0" }).asArray.map(({ key, value }) => {
+  //   return { key, value: Record.deserialize(value) }
+  // })
+  //
+  // console.log(result)
+
+  const headers = {
+    [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
+  }
+
+  const response = await fetch(address + '/' + ZERO_ID + '/dir/subdir/?something', {
+    method: 'GET',
+    headers
+  })
+
+  const keys = await response.text()
+
+  const list = keys.split('\n')
+
+  t.is(list.length, 10)
+
+  t.alike(list, [
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo0.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo1.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo2.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo3.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo4.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo5.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo6.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo7.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo8.txt',
+    '/8pinxxgqs41n4aididenw5apqp1urfmzdztr8jt4abrkdn435ewo/dir/subdir/foo9.txt'
+  ])
+
+  relay.close()
+})
+
+function tmpdir() {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
 
 /** @param {number} ms */
-function sleep (ms) {
+function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
