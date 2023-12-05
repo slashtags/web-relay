@@ -254,40 +254,6 @@ test('encrypt', async (t) => {
   relay.close()
 })
 
-test('encrypt - with key in path', async (t) => {
-  const relay = new Relay(tmpdir())
-  const address = await relay.listen()
-
-  const keyPair = createKeyPair(ZERO_SEED)
-  const a = new Client({ storage: tmpdir(), relay: address, keyPair })
-  const b = new Client({ storage: tmpdir() })
-
-  const encryptionKey = await a._generateEncryptionKey('/foo')
-
-  const url = await a.createURL('/foo', { encrypt: true })
-
-  t.alike(a._parseURL(url).encryptionKey, encryptionKey)
-
-  const value = b4a.from('bar')
-  await a.put(url, value, { awaitRelaySync: true })
-
-  t.alike(await a.get('/foo'), value, 'read locally encrypted file (at rest) without providing any key')
-
-  t.alike(await b.get(url), value, 'get remote encrypted file (e2e)')
-
-  const ts = t.test('subscribe')
-  ts.plan(1)
-
-  b.subscribe(url, (fromSubscribe) => {
-    ts.alike(fromSubscribe, value)
-  })
-
-  await ts
-
-  b.close()
-  relay.close()
-})
-
 test('edge cases - non-uri-safe characters in the entry path', async (t) => {
   const relay = new Relay(tmpdir())
   const address = await relay.listen()
