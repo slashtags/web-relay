@@ -226,7 +226,7 @@ test('encrypt', async (t) => {
   t.unlike(await a._generateEncryptionKey('/bar'), encryptionKey, 'unique encryption key for each path')
   t.unlike(await b._generateEncryptionKey('/foo'), encryptionKey, 'unique encryption key for each user')
 
-  const oldUrl = await a.createURL('foo', { encrypted: true })
+  const oldUrl = await a.createURL('foo', { encrypt: true })
 
   const value = b4a.from('bar')
   await a.put('foo', value, { encrypt: true, awaitRelaySync: true })
