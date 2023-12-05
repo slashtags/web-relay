@@ -226,19 +226,25 @@ test('encrypt', async (t) => {
   t.unlike(await a._generateEncryptionKey('/bar'), encryptionKey, 'unique encryption key for each path')
   t.unlike(await b._generateEncryptionKey('/foo'), encryptionKey, 'unique encryption key for each user')
 
+  const oldUrl = await a.createURL('foo', { encrypted: true })
+
   const value = b4a.from('bar')
   await a.put('foo', value, { encrypt: true, awaitRelaySync: true })
 
   t.alike(await a.get('foo'), value, 'read locally encrypted file (at rest) without providing any key')
 
-  const url = await a.createURL('foo')
+  const newUrl = await a.createURL('foo')
 
-  t.alike(await b.get(url), value, 'get remote encrypted file (e2e)')
+  t.alike(await b.get(newUrl), value, 'get remote encrypted file (e2e)')
+  t.alike(await b.get(oldUrl), value, 'get remote encrypted file (e2e)')
 
   const ts = t.test('subscribe')
-  ts.plan(1)
+  ts.plan(2)
 
-  b.subscribe(url, (fromSubscribe) => {
+  b.subscribe(newUrl, (fromSubscribe) => {
+    ts.alike(fromSubscribe, value)
+  })
+  b.subscribe(oldUrl, (fromSubscribe) => {
     ts.alike(fromSubscribe, value)
   })
 
