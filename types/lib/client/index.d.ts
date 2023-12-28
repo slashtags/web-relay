@@ -158,10 +158,14 @@ declare class Client {
        * Return a url that can be shared by others to acess a file.
        *
        * @param {string} path
+       * @param {object} [opts]
+       * @param {boolean} [opts.encrypt]
        *
        * @returns {Promise<string>}
        */
-    createURL(path: string): Promise<string>;
+    createURL(path: string, opts?: {
+        encrypt?: boolean;
+    }): Promise<string>;
     close(): Promise<void>;
     /**
      * Takes either SlashURL `slash:<userID>/path/to/file` or `path/to/file` and retruns the full path as `<userID>/path/to/file`
