@@ -101,6 +101,60 @@ declare class Client {
      */
     subscribe(path: string, onupdate: (value: Uint8Array | null) => any): () => void;
     /**
+     * Returns a list of items in a directory.
+     *
+     * @param {string} directory
+     * @param {object} [opts]
+     * @param {boolean} [opts.skipCache] - Skip the local cache and wait for the remote relay to respond with fresh data
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    list(directory: string, opts?: {
+        skipCache?: boolean;
+    }): Promise<Array<string>>;
+    /**
+     * Returns a list of items in matching a query from the relay.
+     *
+     * @param {string} start
+     * @param {string} end
+     * @param {object} [opts]
+     * @param {number} [opts.limit]
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    query(start: string, end: string, opts?: {
+        limit?: number;
+    }): Promise<Array<string>>;
+    /**
+     * Returns a list of items in a directory from local store.
+     *
+     * @param {string} directory
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    _listLocal(directory: string): Promise<Array<string>>;
+    /**
+     * Returns a list of items in a directory from the relay.
+     *
+     * @param {string} directory
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    _listRelay(directory: string): Promise<Array<string>>;
+    /**
+     * Returns a list of items in matching a query.
+     *
+     * @param {string} start
+     * @param {string} end
+     * @param {object} [opts]
+     * @param {number} [opts.limit]
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    _queryRelay(start: string, end: string, opts?: {
+        limit?: number;
+    }): Promise<Array<string>>;
+    /**
        * Return a url that can be shared by others to acess a file.
        *
        * @param {string} path

@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 export = Relay;
 declare class Relay {
     static SERVER_SIDE_RECORDS_METADATA: string;
@@ -106,6 +107,25 @@ declare class Relay {
      */
     _SUBSCRIBE(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
     /**
+     * @param {string} id
+     * @param {string} directory
+     * @param {object} [options]
+     * @param {number} [options.limit]
+     * @param {number} [options.offset]
+     *
+     * @returns {lmdb.RangeIterable}
+     */
+    _searchDirectory(id: string, directory: string, options?: {
+        limit?: number;
+        offset?: number;
+    }): lmdb.RangeIterable<any>;
+    /**
+     * @param {http.IncomingMessage} _req
+     * @param {http.ServerResponse} res
+     * @param {URL} url
+     */
+    _QUERY(_req: http.IncomingMessage, res: http.ServerResponse, url: URL): Promise<void>;
+    /**
      * Health check endpoint to provide server metrics.
      *
      * @param {http.IncomingMessage} req
@@ -121,4 +141,6 @@ declare class Relay {
 import http = require("http");
 import Record = require("../record.js");
 import Prometheus = require("prom-client");
+import lmdb = require("lmdb");
+import { URL } from "url";
 //# sourceMappingURL=index.d.ts.map
