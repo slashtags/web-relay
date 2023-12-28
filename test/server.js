@@ -565,7 +565,7 @@ test('query all in a directory', async (t) => {
     [HEADERS.CONTENT_TYPE]: 'application/octet-stream'
   }
 
-  const response = await fetch(address + '/' + ZERO_ID + '/dir/subdir/?something', {
+  const response = await fetch(address + '/' + ZERO_ID + '/?start=/dir/subdir/&end=/dir/subdir0', {
     method: 'GET',
     headers
   })

@@ -113,6 +113,19 @@ declare class Client {
         skipCache?: boolean;
     }): Promise<Array<string>>;
     /**
+     * Returns a list of items in matching a query from the relay.
+     *
+     * @param {string} start
+     * @param {string} end
+     * @param {object} [opts]
+     * @param {number} [opts.limit]
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    query(start: string, end: string, opts?: {
+        limit?: number;
+    }): Promise<Array<string>>;
+    /**
      * Returns a list of items in a directory from local store.
      *
      * @param {string} directory
@@ -128,6 +141,19 @@ declare class Client {
      * @returns {Promise<Array<string>>}
      */
     _listRelay(directory: string): Promise<Array<string>>;
+    /**
+     * Returns a list of items in matching a query.
+     *
+     * @param {string} start
+     * @param {string} end
+     * @param {object} [opts]
+     * @param {number} [opts.limit]
+     *
+     * @returns {Promise<Array<string>>}
+     */
+    _queryRelay(start: string, end: string, opts?: {
+        limit?: number;
+    }): Promise<Array<string>>;
     /**
        * Return a url that can be shared by others to acess a file.
        *

@@ -348,6 +348,40 @@ test('list', async (t) => {
   relay.close()
 })
 
+test('query', async (t) => {
+  const relay = new Relay(tmpdir())
+
+  const address = await relay.listen()
+
+  const content = b4a.from(JSON.stringify({
+    name: 'Alice Bob Carl'
+  }))
+
+  const client = new Client({ storage: tmpdir(), relay: address })
+
+  for (let i = 0; i < 10; i++) {
+    await client.put(`/dir/subdir/foo${i}.txt`, content, { awaitRelaySync: true })
+    await client.put(`/dir/wrong/foo${i}.txt`, content, { awaitRelaySync: true })
+  }
+
+  const list = await client.query('/dir/subdir/', '/dir/subdir0')
+
+  t.alike(list, [
+    '/' + client.id + '/dir/subdir/foo0.txt',
+    '/' + client.id + '/dir/subdir/foo1.txt',
+    '/' + client.id + '/dir/subdir/foo2.txt',
+    '/' + client.id + '/dir/subdir/foo3.txt',
+    '/' + client.id + '/dir/subdir/foo4.txt',
+    '/' + client.id + '/dir/subdir/foo5.txt',
+    '/' + client.id + '/dir/subdir/foo6.txt',
+    '/' + client.id + '/dir/subdir/foo7.txt',
+    '/' + client.id + '/dir/subdir/foo8.txt',
+    '/' + client.id + '/dir/subdir/foo9.txt'
+  ])
+
+  relay.close()
+})
+
 function tmpdir () {
   return path.join(os.tmpdir(), Math.random().toString(16).slice(2))
 }
